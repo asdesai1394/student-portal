@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faculty Master Control & Test Portal</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SheetJS for Excel Parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body class="bg-slate-100 font-sans text-gray-800 min-h-screen flex flex-col justify-between">
+
+    <!-- TOP NAVIGATION HEADER -->
+    <header class="bg-slate-900 text-white px-8 py-4 flex justify-between items-center shadow-md">
+        <div class="flex items-center space-x-3">
+            <i class="fa-solid fa-chalkboard-user text-2xl text-amber-400"></i>
+            <span class="text-lg font-bold tracking-wide">Faculty Assessment & Course Workspace</span>
+        </div>
+        <div class="text-xs text-slate-400 font-mono">
+            Department Evaluation System &copy; 2026
+        </div>
+    </header>
+
+    <!-- MAIN DASHBOARD CONTENT -->
+    <main class="p-8 max-w-6xl w-full mx-auto space-y-8 flex-1">
+        
+        <!-- SECTION 1: COURSE WORKSPACE & ROSTER MANAGEMENT -->
+        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-6">
+            <div class="flex justify-between items-center border-b pb-4">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                        <i class="fa-solid fa-folder-plus text-indigo-600"></i> Course & Student Roster Setup
+                    </h3>
+                    <p class="text-xs text-gray-500 mt-0.5">Define your course and enroll students via Excel/CSV or manual entry.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <!-- Left: Course Details & Enrollment Mode Selection -->
+                <div class="space-y-4 text-xs">
+                    <div>
+                        <label class="block font-semibold text-gray-700 mb-1">Select / Enter Course Title</label>
+                        <input type="text" id="course-title-input" placeholder="e.g., MTech Automotive or MTech Thermal" class="w-full border border-gray-300 rounded-lg p-2.5 font-semibold focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+
+                    <!-- Enrollment Input Mode Toggle -->
+                    <div>
+                        <label class="block font-semibold text-gray-700 mb-2">Student Enrollment Method</label>
+                        <div class="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-lg border border-gray-200">
+                            <button id="mode-excel-btn" onclick="switchEnrollmentMode('excel')" class="py-2 text-xs font-bold rounded-md bg-white text-indigo-600 shadow-xs transition">
+                                <i class="fa-solid fa-file-excel mr-1"></i> Excel / CSV Upload
+                            </button>
+                            <button id="mode-manual-btn" onclick="switchEnrollmentMode('manual')" class="py-2 text-xs font-bold rounded-md text-gray-600 hover:text-indigo-600 transition">
+                                <i class="fa-solid fa-keyboard mr-1"></i> Manual Text Entry
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- OPTION A: Excel File Input Container -->
+                    <div id="enrollment-excel-box" class="p-4 border-2 border-dashed border-indigo-200 bg-indigo-50/50 rounded-xl space-y-2 text-center">
+                        <i class="fa-solid fa-cloud-arrow-up text-2xl text-indigo-500"></i>
+                        <p class="font-bold text-gray-700">Upload Excel Spreadsheet (.xlsx, .xls, .csv)</p>
+                        <p class="text-[10px] text-gray-500">Must include columns: <code class="bg-gray-200 px-1 rounded">MIS No</code> and <code class="bg-gray-200 px-1 rounded">Student Name</code></p>
+                        <input type="file" id="roster-excel-input" accept=".xlsx, .xls, .csv" class="block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 cursor-pointer">
+                    </div>
+
+                    <!-- OPTION B: Manual Text Entry Container -->
+                    <div id="enrollment-manual-box" class="hidden p-4 border border-gray-200 bg-gray-50 rounded-xl space-y-3">
+                        <div class="flex justify-between items-center">
+                            <label class="font-bold text-gray-700">Type / Paste Roster Line-by-Line</label>
+                            <span class="text-[10px] text-gray-500">Format: <code class="bg-gray-200 px-1 rounded">MIS, Student Name</code></span>
+                        </div>
+                        <textarea id="roster-manual-input" rows="5" placeholder="112203001, Amit Sharma&#10;112203002, Rahul Patil&#10;112203003, Sneha Kulkarni" class="w-full border border-gray-300 rounded-lg p-2.5 text-xs font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"></textarea>
+                    </div>
+
+                    <button onclick="registerCourseRoster()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg text-xs transition shadow-md flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-save"></i> Save & Register Course Roster
+                    </button>
+                </div>
+
+                <!-- Right: Active Roster Preview Table -->
+                <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center border-b pb-2">
+                            <h4 class="font-bold text-xs text-gray-800">Registered Courses & Student Counts</h4>
+                            <span id="registered-courses-badge" class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full">0 Courses</span>
+                        </div>
+                        
+                        <div class="overflow-y-auto max-h-52 mt-3 rounded-lg border border-gray-200 bg-white">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-gray-100 text-gray-600 font-semibold border-b">
+                                    <tr>
+                                        <th class="p-2">Course Name</th>
+                                        <th class="p-2 text-center">Enrolled Students</th>
+                                        <th class="p-2 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="courses-summary-table-body" class="divide-y divide-gray-100 text-gray-700">
+                                    <tr>
+                                        <td colspan="3" class="p-4 text-center text-gray-400 italic">No course rosters registered yet.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="text-[11px] text-slate-500 italic bg-amber-50 p-2.5 rounded-lg border border-amber-200">
+                        <i class="fa-solid fa-circle-info text-amber-600 mr-1"></i> Rosters saved here instantly sync with <strong>student.html</strong> on the same domain.
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-900 text-slate-500 text-xs py-4 text-center border-t border-slate-800">
+        Academic Evaluation System &copy; 2026 | Faculty Administration Module
+    </footer>
+
+    <!-- ENGINE SCRIPT -->
+    <script>
+        let academicCourses = JSON.parse(localStorage.getItem('portal_courses')) || {};
+        let activeEnrollmentMode = 'excel';
+
+        // Toggle between Excel and Manual Enrollment interfaces
+        function switchEnrollmentMode(mode) {
+            activeEnrollmentMode = mode;
+            const excelBtn = document.getElementById('mode-excel-btn');
+            const manualBtn = document.getElementById('mode-manual-btn');
+            const excelBox = document.getElementById('enrollment-excel-box');
+            const manualBox = document.getElementById('enrollment-manual-box');
+
+            if (mode === 'excel') {
+                excelBtn.className = "py-2 text-xs font-bold rounded-md bg-white text-indigo-600 shadow-xs transition";
+                manualBtn.className = "py-2 text-xs font-bold rounded-md text-gray-600 hover:text-indigo-600 transition";
+                excelBox.classList.remove('hidden');
+                manualBox.classList.add('hidden');
+            } else {
+                manualBtn.className = "py-2 text-xs font-bold rounded-md bg-white text-indigo-600 shadow-xs transition";
+                excelBtn.className = "py-2 text-xs font-bold rounded-md text-gray-600 hover:text-indigo-600 transition";
+                manualBox.classList.remove('hidden');
+                excelBox.classList.add('hidden');
+            }
+        }
+
+        // Register Course Roster based on selected mode
+        function registerCourseRoster() {
+            const courseTitle = document.getElementById('course-title-input').value.trim();
+            if (!courseTitle) return alert("Please specify the Course Title (e.g., MTech Automotive).");
+
+            if (activeEnrollmentMode === 'excel') {
+                const excelInput = document.getElementById('roster-excel-input');
+                if (!excelInput.files.length) return alert("Please select an Excel file to upload.");
+
+                const file = excelInput.files[0];
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const jsonRows = XLSX.utils.sheet_to_json(firstSheet);
+
+                        const parsedStudents = [];
+                        jsonRows.forEach(row => {
+                            // Flexibly search for common MIS and Name column titles
+                            const mis = String(row['MIS No'] || row['MIS'] || row['Roll No'] || row['roll_no'] || '').trim();
+                            const name = String(row['Student Name'] || row['Name'] || row['student_name'] || '').trim();
+
+                            if (mis && name) {
+                                parsedStudents.push({ roll_no: mis, student_name: name });
+                            }
+                        });
+
+                        if (!parsedStudents.length) {
+                            return alert("Could not parse student entries. Ensure columns are named 'MIS No' and 'Student Name'.");
+                        }
+
+                        saveCourseToLocalStorage(courseTitle, parsedStudents);
+                        excelInput.value = '';
+                    } catch (err) {
+                        alert("Error reading Excel file: " + err.message);
+                    }
+                };
+
+                reader.readAsArrayBuffer(file);
+
+            } else {
+                // Parse Manual Text Area
+                const textData = document.getElementById('roster-manual-input').value.trim();
+                if (!textData) return alert("Please type or paste student records into the text area.");
+
+                const lines = textData.split('\n');
+                const parsedStudents = [];
+
+                lines.forEach(line => {
+                    const parts = line.split(',');
+                    if (parts.length >= 2) {
+                        const mis = parts[0].trim();
+                        const name = parts.slice(1).join(',').trim();
+                        if (mis && name) {
+                            parsedStudents.push({ roll_no: mis, student_name: name });
+                        }
+                    }
+                });
+
+                if (!parsedStudents.length) {
+                    return alert("No valid student lines found. Format each line as: MIS, Student Name");
+                }
+
+                saveCourseToLocalStorage(courseTitle, parsedStudents);
+                document.getElementById('roster-manual-input').value = '';
+            }
+        }
+
+        // Save into localStorage
+        function saveCourseToLocalStorage(courseTitle, studentArray) {
+            academicCourses[courseTitle] = studentArray;
+            localStorage.setItem('portal_courses', JSON.stringify(academicCourses));
+            alert(`Successfully registered ${studentArray.length} students under course '${courseTitle}'!`);
+            document.getElementById('course-title-input').value = '';
+            renderCourseSummaryTable();
+        }
+
+        // Render Active Courses Table
+        function renderCourseSummaryTable() {
+            const tableBody = document.getElementById('courses-summary-table-body');
+            const courseKeys = Object.keys(academicCourses);
+
+            document.getElementById('registered-courses-badge').innerText = `${courseKeys.length} Courses`;
+
+            if (!courseKeys.length) {
+                tableBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-gray-400 italic">No course rosters registered yet.</td></tr>`;
+                return;
+            }
+
+            tableBody.innerHTML = courseKeys.map(key => `
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="p-2 font-bold text-gray-900">${key}</td>
+                    <td class="p-2 text-center font-mono font-bold text-indigo-600">${academicCourses[key].length} Students</td>
+                    <td class="p-2 text-right">
+                        <button onclick="deleteCourseRoster('${key}')" class="text-rose-600 hover:underline font-bold text-[11px]">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Delete Course
+        function deleteCourseRoster(courseKey) {
+            if (confirm(`Are you sure you want to delete roster for course '${courseKey}'?`)) {
+                delete academicCourses[courseKey];
+                localStorage.setItem('portal_courses', JSON.stringify(academicCourses));
+                renderCourseSummaryTable();
+            }
+        }
+
+        // Initialize table on page load
+        renderCourseSummaryTable();
+    </script>
+</body>
+</html>
