@@ -11,8 +11,9 @@
     <!-- KaTeX for Math Equations -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
 </head>
-<body class="bg-slate-900 font-sans text-gray-100 min-h-screen flex flex-col justify-between">
+<body class="bg-slate-900 font-sans text-gray-100 min-h-screen flex flex-col justify-between select-none">
 
     <!-- TOP BAR -->
     <header class="bg-slate-950 border-b border-slate-800 px-6 py-4 flex justify-between items-center shadow-md">
@@ -75,15 +76,15 @@
                 <!-- QUIZ / TEST SECTION -->
                 <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl space-y-4">
                     <div class="flex items-center space-x-3 text-emerald-400">
-                        <i class="fa-solid fa-file-pen text-2xl"></i>
-                        <h4 class="text-lg font-bold text-white">Online Quizzes & Exams</h4>
+                        <i class="fa-solid fa-shield-halved text-2xl"></i>
+                        <h4 class="text-lg font-bold text-white">Proctored Online Quizzes</h4>
                     </div>
-                    <p class="text-xs text-slate-400">Select an active published assessment to begin your timed test.</p>
+                    <p class="text-xs text-slate-400">Warning: Assessments run in strict fullscreen. Switching tabs will trigger auto-submission.</p>
                     
                     <select id="available-tests-select" class="w-full border border-slate-600 rounded-lg p-2.5 bg-slate-900 text-white text-xs focus:outline-none"></select>
                     
                     <button onclick="startSelectedTest()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg text-xs transition shadow-md flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-play"></i> Start Test
+                        <i class="fa-solid fa-expand"></i> Launch Proctored Test
                     </button>
                 </div>
 
@@ -111,13 +112,13 @@
 
         </div>
 
-        <!-- 3. LIVE QUIZ INTERFACE -->
+        <!-- 3. PROCTORED QUIZ INTERFACE -->
         <div id="student-quiz-interface" class="hidden space-y-6">
             
             <div class="bg-slate-800 p-4 px-6 rounded-2xl border border-slate-700 shadow-xl flex justify-between items-center sticky top-4 z-50">
                 <div>
                     <h3 class="text-base font-bold text-white" id="quiz-title-display">Assessment Title</h3>
-                    <p class="text-xs text-slate-400">Total Questions: <span id="quiz-count-display" class="text-indigo-400 font-mono"></span></p>
+                    <p class="text-xs text-slate-400">Questions: <span id="quiz-count-display" class="text-indigo-400 font-mono"></span> | <span class="text-rose-400 font-semibold"><i class="fa-solid fa-eye mr-1"></i>Proctored Mode Active</span></p>
                 </div>
                 <div class="text-right">
                     <p class="text-[10px] text-slate-400 uppercase tracking-wider">Time Remaining</p>
@@ -129,8 +130,8 @@
             <div id="quiz-questions-list" class="space-y-6"></div>
 
             <!-- SUBMIT BUTTON -->
-            <button onclick="submitStudentTest(false)" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm transition shadow-lg flex items-center justify-center gap-2">
-                <i class="fa-solid fa-check-circle"></i> Submit Test Answers
+            <button onclick="submitStudentTest(false, 'Manual Submission')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl text-sm transition shadow-lg flex items-center justify-center gap-2">
+                <i class="fa-solid fa-check-circle"></i> Finalize & Submit Exam
             </button>
 
         </div>
@@ -152,6 +153,15 @@
         let currentAuthenticatedStudent = null;
         let activeTestObject = null;
         let quizTimerInterval = null;
+        let isExamInProgress = false;
+
+        // Disable Context Menu / Copying during tests
+        document.addEventListener('contextmenu', e => { if (isExamInProgress) e.preventDefault(); });
+        document.addEventListener('keydown', e => {
+            if (isExamInProgress && (e.ctrlKey || e.metaKey) && ['c', 'v', 'u', 'a'].includes(e.key.toLowerCase())) {
+                e.preventDefault();
+            }
+        });
 
         function initializeCourseDropdown() {
             const courseSelect = document.getElementById('login-course-select');
@@ -206,6 +216,10 @@
         }
 
         function logoutStudent() {
+            if (isExamInProgress) {
+                if (!confirm("Exiting during an ongoing exam will result in immediate test termination. Proceed?")) return;
+                submitStudentTest(true, "Exited Portal During Test");
+            }
             currentAuthenticatedStudent = null;
             clearInterval(quizTimerInterval);
             document.getElementById('student-login-box').classList.remove('hidden');
@@ -328,7 +342,7 @@
             reader.readAsDataURL(file);
         }
 
-        /* --- 📝 FULL QUIZ EXECUTION ENGINE --- */
+        /* --- 🔒 SECURITY & PROCTORED QUIZ ENGINE --- */
         function startSelectedTest() {
             const testId = document.getElementById('available-tests-select').value;
             if (!testId) return alert("No quiz selected or available.");
@@ -340,8 +354,19 @@
             let existingSubmissions = JSON.parse(localStorage.getItem('portal_test_submissions')) || [];
             let alreadyDone = existingSubmissions.find(s => s.testId === testId && s.mis === currentAuthenticatedStudent.mis);
             if (alreadyDone) {
-                return alert(`You have already completed this test on ${alreadyDone.timestamp}! Score: ${alreadyDone.score}/${alreadyDone.totalMarks}`);
+                return alert(`You completed this exam on ${alreadyDone.timestamp}.\nScore: ${alreadyDone.score} / ${alreadyDone.totalMarks}`);
             }
+
+            if (!confirm("PROCTORED EXAM WARNING:\n\n1. The test will enter full-screen mode.\n2. Switching tabs or exiting full-screen will AUTO-SUBMIT your exam immediately!\n\nAre you ready to begin?")) {
+                return;
+            }
+
+            // Enable Fullscreen
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            }
+
+            isExamInProgress = true;
 
             // Hide Dashboard, Show Quiz View
             document.getElementById('student-action-dashboard').classList.add('hidden');
@@ -354,29 +379,51 @@
             startQuizTimer(parseInt(activeTestObject.duration) || 15);
         }
 
+        // Security Violation Listener: Tab Switch / Minimizing window
+        document.addEventListener("visibilitychange", function() {
+            if (isExamInProgress && document.hidden) {
+                alert("🚨 SECURITY VIOLATION: Tab switch or window blur detected! Your exam is being automatically submitted.");
+                submitStudentTest(true, "Auto-submitted (Tab Switch Detected)");
+            }
+        });
+
+        // Security Violation Listener: Exiting Fullscreen
+        document.addEventListener("fullscreenchange", function() {
+            if (isExamInProgress && !document.fullscreenElement) {
+                alert("🚨 SECURITY VIOLATION: Fullscreen mode exited! Your exam is being automatically submitted.");
+                submitStudentTest(true, "Auto-submitted (Exited Fullscreen)");
+            }
+        });
+
         function renderQuizQuestions() {
             const container = document.getElementById('quiz-questions-list');
-            container.innerHTML = activeTestObject.questions.map((q, idx) => `
-                <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-md space-y-4">
-                    <div class="flex items-start justify-between gap-4">
-                        <span class="text-xs font-bold bg-indigo-500/20 text-indigo-300 px-2.5 py-1 rounded-md font-mono">Q${idx + 1}</span>
-                        <span class="text-xs text-amber-400 font-semibold">${q.marks || 1} Mark(s)</span>
-                    </div>
-                    
-                    <div class="text-sm font-semibold text-white leading-relaxed question-text-content">${q.question}</div>
+            
+            container.innerHTML = activeTestObject.questions.map((q, idx) => {
+                // Robust Fallback Key Match to solve missing question string!
+                const questionText = q.text || q.question || q.qText || q.prompt || "Question text unavailable";
 
-                    <div class="space-y-2 pt-2">
-                        ${q.options.map((opt, oIdx) => `
-                            <label class="flex items-center space-x-3 p-3 bg-slate-900/60 hover:bg-slate-900 border border-slate-700/60 rounded-xl cursor-pointer transition text-xs">
-                                <input type="radio" name="question_${idx}" value="${oIdx}" class="text-indigo-600 focus:ring-indigo-500">
-                                <span class="text-slate-200 option-text-content">${opt}</span>
-                            </label>
-                        `).join('')}
-                    </div>
-                </div>
-            `).join('');
+                return `
+                    <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-md space-y-4">
+                        <div class="flex items-start justify-between gap-4">
+                            <span class="text-xs font-bold bg-indigo-500/20 text-indigo-300 px-2.5 py-1 rounded-md font-mono">Q${idx + 1}</span>
+                            <span class="text-xs text-amber-400 font-semibold">${q.marks || 1} Mark(s)</span>
+                        </div>
+                        
+                        <div class="text-sm font-semibold text-white leading-relaxed question-text-content">${questionText}</div>
 
-            // Render KaTeX for any math formulas in questions or options
+                        <div class="space-y-2 pt-2">
+                            ${(q.options || []).map((opt, oIdx) => `
+                                <label class="flex items-center space-x-3 p-3 bg-slate-900/60 hover:bg-slate-900 border border-slate-700/60 rounded-xl cursor-pointer transition text-xs">
+                                    <input type="radio" name="question_${idx}" value="${oIdx}" class="text-indigo-600 focus:ring-indigo-500">
+                                    <span class="text-slate-200 option-text-content">${opt}</span>
+                                </label>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // KaTeX Rendering Engine
             setTimeout(() => {
                 document.querySelectorAll('.question-text-content, .option-text-content').forEach(el => {
                     if (window.renderMathInElement) {
@@ -404,19 +451,26 @@
 
                 if (timeRemaining <= 0) {
                     clearInterval(quizTimerInterval);
-                    alert("⏰ Time is up! Submitting your test automatically...");
-                    submitStudentTest(true);
+                    alert("⏰ TIME OVER! Your exam is being automatically submitted.");
+                    submitStudentTest(true, "Auto-submitted (Time Limit Exceeded)");
                 }
                 timeRemaining--;
             }, 1000);
         }
 
-        function submitStudentTest(autoSubmitted) {
+        function submitStudentTest(autoSubmitted, reason = "Manual Submission") {
+            if (!isExamInProgress) return;
+            
+            isExamInProgress = false; // Turn off proctor flags
             clearInterval(quizTimerInterval);
+
+            // Exit Fullscreen if active
+            if (document.fullscreenElement && document.exitFullscreen) {
+                document.exitFullscreen().catch(() => {});
+            }
 
             let score = 0;
             let totalMarks = 0;
-            let studentAnswers = [];
 
             activeTestObject.questions.forEach((q, idx) => {
                 const marks = parseInt(q.marks) || 1;
@@ -424,12 +478,6 @@
 
                 const selectedOption = document.querySelector(`input[name="question_${idx}"]:checked`);
                 const answerVal = selectedOption ? parseInt(selectedOption.value) : null;
-
-                studentAnswers.push({
-                    questionIndex: idx,
-                    selectedOption: answerVal,
-                    correctOption: parseInt(q.correct)
-                });
 
                 if (answerVal !== null && answerVal === parseInt(q.correct)) {
                     score += marks;
@@ -445,17 +493,17 @@
                 score: score,
                 totalMarks: totalMarks,
                 timestamp: new Date().toLocaleString(),
-                autoSubmitted: autoSubmitted
+                submissionType: reason
             };
 
-            // Save to localStorage
+            // Save result to LocalStorage
             let submittedTests = JSON.parse(localStorage.getItem('portal_test_submissions')) || [];
             submittedTests.push(testRecord);
             localStorage.setItem('portal_test_submissions', JSON.stringify(submittedTests));
 
-            alert(`Test Completed!\n\nYour Score: ${score} / ${totalMarks}\nSubmission saved successfully.`);
+            alert(`Exam Terminated / Submitted!\n\nStatus: ${reason}\nScore: ${score} / ${totalMarks}`);
 
-            // Return to dashboard
+            // Return to Student Dashboard
             document.getElementById('student-quiz-interface').classList.add('hidden');
             document.getElementById('student-action-dashboard').classList.remove('hidden');
             populateStudentAssessments();
