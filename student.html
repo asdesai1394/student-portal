@@ -354,7 +354,12 @@
             let existingSubmissions = JSON.parse(localStorage.getItem('portal_test_submissions')) || [];
             let alreadyDone = existingSubmissions.find(s => s.testId === testId && s.mis === currentAuthenticatedStudent.mis);
             if (alreadyDone) {
-                return alert(`You completed this exam on ${alreadyDone.timestamp}.\nScore: ${alreadyDone.score} / ${alreadyDone.totalMarks}`);
+                if (confirm(`You completed this exam on ${alreadyDone.timestamp}.\nScore: ${alreadyDone.score} / ${alreadyDone.totalMarks}\n\n[DEV MODE]: Clear this submission history to retake the test for testing purposes?`)) {
+                    submittedTests = existingSubmissions.filter(s => !(s.testId === testId && s.mis === currentAuthenticatedStudent.mis));
+                    localStorage.setItem('portal_test_submissions', JSON.stringify(submittedTests));
+                } else {
+                    return;
+                }
             }
 
             if (!confirm("PROCTORED EXAM WARNING:\n\n1. The test will enter full-screen mode.\n2. Switching tabs or exiting full-screen will AUTO-SUBMIT your exam immediately!\n\nAre you ready to begin?")) {
@@ -399,16 +404,32 @@
             const container = document.getElementById('quiz-questions-list');
             
             container.innerHTML = activeTestObject.questions.map((q, idx) => {
-                // Universal property inspector to catch whichever key portal.html uses
-                const questionText = q.text || 
-                                     q.question || 
-                                     q.qText || 
-                                     q.title || 
-                                     q.qTitle || 
-                                     q.questionTitle || 
-                                     q.statement || 
-                                     q.prompt || 
-                                     (typeof q === 'string' ? q : "Question text missing");
+                // Extended inspector: checks every single object key dynamically
+                let questionText = "";
+                
+                if (typeof q === 'string') {
+                    questionText = q;
+                } else if (typeof q === 'object' && q !== null) {
+                    questionText = q.text || 
+                                   q.question || 
+                                   q.qText || 
+                                   q.title || 
+                                   q.qTitle || 
+                                   q.questionTitle || 
+                                   q.statement || 
+                                   q.prompt || 
+                                   q.desc;
+
+                    // Deep Fallback: if keys don't match, find the first string property that isn't ID/type
+                    if (!questionText) {
+                        const strKeys = Object.keys(q).filter(k => typeof q[k] === 'string' && k !== 'id' && k !== 'type');
+                        if (strKeys.length) questionText = q[strKeys[0]];
+                    }
+                }
+
+                if (!questionText) {
+                    questionText = `<span class="text-rose-400 font-mono">[Data Debug]: Keys found: ${Object.keys(q).join(', ')}</span>`;
+                }
 
                 return `
                     <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-md space-y-4">
