@@ -144,9 +144,16 @@
 
                         <div class="lg:col-span-2 bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col">
                             <h3 class="text-lg font-bold text-gray-900 mb-3">Registered Department Class Registries</h3>
-                            <div class="flex space-x-2 mb-4">
+                            
+                            <!-- SELECTOR WITH DELETE BUTTON -->
+                            <div class="flex items-center space-x-3 mb-4">
                                 <select id="course-roster-selector" onchange="renderRosterView()" class="border border-gray-300 rounded-lg p-2 text-xs bg-white focus:outline-none w-64 font-bold text-slate-800"></select>
+                                <button onclick="deleteSelectedCourseWorkspace()" class="bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-600 hover:text-white px-3 py-2 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 shadow-xs">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                    <span>Delete Course Workspace</span>
+                                </button>
                             </div>
+
                             <div class="overflow-x-auto rounded-lg border border-gray-200 flex-1 max-h-[350px]">
                                 <table class="w-full text-left text-xs">
                                     <thead class="bg-gray-50 text-gray-600 font-semibold border-b sticky top-0">
@@ -662,6 +669,23 @@
         let activeEnrollmentMode = 'excel';
         let temporaryParsedExcelRoster = [];
 
+        // --- DELETE COURSE WORKSPACE FUNCTION ---
+        function deleteSelectedCourseWorkspace() {
+            const courseKey = document.getElementById('course-roster-selector').value;
+            if (!courseKey) return alert("No course selected to delete.");
+
+            if (confirm(`Are you sure you want to completely delete the course workspace '${courseKey}'?`)) {
+                delete academicCourses[courseKey];
+                localStorage.setItem('portal_courses', JSON.stringify(academicCourses));
+                
+                initializeDropdowns();
+                renderRosterView();
+                updateDashboardMetrics();
+                
+                alert(`Course workspace '${courseKey}' has been deleted.`);
+            }
+        }
+
         // --- SUB-TAB SWITCHER CONTROLLER ---
         function switchAssessmentSubTab(subTab) {
             document.querySelectorAll('.subtab-content').forEach(el => el.classList.add('hidden'));
@@ -747,7 +771,13 @@
 
         function renderRosterView() {
             const key = document.getElementById('course-roster-selector').value;
-            const container = document.getElementById('roster-display-body'); if (!key) return;
+            const container = document.getElementById('roster-display-body'); 
+            
+            if (!key || !academicCourses[key]) {
+                container.innerHTML = '<tr><td colspan="2" class="px-6 py-4 text-center text-gray-400 italic">No course selected or roster empty.</td></tr>';
+                return;
+            }
+            
             container.innerHTML = academicCourses[key].map(s => `<tr><td class="px-6 py-2 font-mono text-xs font-bold">${s.roll_no}</td><td>${s.student_name}</td></tr>`).join('');
         }
 
