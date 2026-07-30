@@ -90,7 +90,7 @@
                     
                     <select id="available-tests-select" class="w-full border border-slate-600 rounded-lg p-2.5 bg-slate-900 text-white text-xs focus:outline-none"></select>
                     
-                    <button onclick="startSelectedTest()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg text-xs transition shadow-md flex items-center justify-center gap-2">
+                    <button id="launch-test-btn" onclick="startSelectedTest()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg text-xs transition shadow-md flex items-center justify-center gap-2">
                         <i class="fa-solid fa-expand"></i> Launch Proctored Test
                     </button>
                 </div>
@@ -198,6 +198,7 @@
                 : '<option value="">No registered courses found</option>';
         }
 
+        /* --- 1. BUG FIX: STRICT UNREGISTERED STUDENT BLOCK --- */
         function authenticateStudent() {
             const selectedCourse = document.getElementById('login-course-select').value;
             const misNumber = document.getElementById('student-mis-input').value.trim();
@@ -208,15 +209,21 @@
             if (!passcode) return alert("Please enter your password.");
 
             const courseRoster = academicCourses[selectedCourse] || [];
-            const studentMatch = courseRoster.find(s => s.roll_no === misNumber);
+            
+            // Strictly check if student MIS exists in the registered roster
+            const studentMatch = courseRoster.find(s => String(s.roll_no).trim() === misNumber);
+
+            if (!studentMatch) {
+                return alert(`ACCESS DENIED: MIS Number '${misNumber}' is not registered under '${selectedCourse}'.\nPlease contact your course instructor.`);
+            }
 
             const studentPassKey = `pass_${selectedCourse}_${misNumber}`;
             const savedPassword = localStorage.getItem(studentPassKey);
 
             if (!savedPassword) {
-                if (confirm("First-time login detected! Set this as your secret password for future logins?")) {
+                if (confirm(`Welcome ${studentMatch.student_name}!\n\nFirst-time login detected. Set this passcode as your permanent account password?`)) {
                     localStorage.setItem(studentPassKey, passcode);
-                    alert("Password set successfully! Keep this password safe.");
+                    alert("Password registered successfully! Keep this passcode safe.");
                 } else {
                     return;
                 }
@@ -227,7 +234,7 @@
             currentAuthenticatedStudent = {
                 course: selectedCourse,
                 mis: misNumber,
-                name: studentMatch ? studentMatch.student_name : "Student (" + misNumber + ")"
+                name: studentMatch.student_name
             };
 
             document.getElementById('student-login-box').classList.add('hidden');
@@ -258,19 +265,48 @@
         function populateStudentAssessments() {
             const course = currentAuthenticatedStudent.course;
             
+            // Populate Quizzes
             const courseTests = publishedTests.filter(t => t.course === course);
             document.getElementById('available-tests-select').innerHTML = courseTests.length
                 ? courseTests.map(t => `<option value="${t.id}">${t.title} (${t.duration} Mins)</option>`).join('')
                 : '<option value="">No active quizzes for this course</option>';
 
+            // Populate Assignments
             const courseAssignments = floatedAssignments.filter(a => a.course === course);
             document.getElementById('available-assignments-select').innerHTML = courseAssignments.length
                 ? courseAssignments.map(a => `<option value="${a.id}">${a.title}</option>`).join('')
                 : '<option value="">No active assignments floated</option>';
 
+            updateQuizAttemptStatus();
             updateAssignmentDeadlineDisplay();
         }
 
+        /* --- 2. BUG FIX: STRICT SINGLE ATTEMPT FOR QUIZZES --- */
+        function updateQuizAttemptStatus() {
+            const testId = document.getElementById('available-tests-select').value;
+            const launchBtn = document.getElementById('launch-test-btn');
+
+            if (!testId) {
+                launchBtn.disabled = true;
+                launchBtn.className = "w-full bg-slate-700 text-slate-500 font-bold py-2.5 rounded-lg text-xs cursor-not-allowed";
+                return;
+            }
+
+            let submittedTests = JSON.parse(localStorage.getItem('portal_test_submissions')) || [];
+            let alreadyTaken = submittedTests.find(s => s.testId === testId && s.mis === currentAuthenticatedStudent.mis);
+
+            if (alreadyTaken) {
+                launchBtn.disabled = true;
+                launchBtn.className = "w-full bg-slate-700 text-emerald-400 font-bold py-2.5 rounded-lg text-xs cursor-not-allowed border border-emerald-800";
+                launchBtn.innerHTML = `<i class="fa-solid fa-check-circle"></i> Quiz Already Completed (${alreadyTaken.score}/${alreadyTaken.totalMarks})`;
+            } else {
+                launchBtn.disabled = false;
+                launchBtn.className = "w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg text-xs transition shadow-md flex items-center justify-center gap-2";
+                launchBtn.innerHTML = `<i class="fa-solid fa-expand"></i> Launch Proctored Test`;
+            }
+        }
+
+        /* --- 3. BUG FIX: STRICT SINGLE ATTEMPT FOR ASSIGNMENTS --- */
         function updateAssignmentDeadlineDisplay() {
             const assignId = document.getElementById('available-assignments-select').value;
             const banner = document.getElementById('assignment-deadline-banner');
@@ -279,10 +315,23 @@
             if (!assignId) {
                 banner.innerText = "No active assignment selected.";
                 uploadBtn.disabled = true;
+                uploadBtn.className = "w-full bg-slate-700 text-slate-500 font-bold py-2.5 rounded-lg text-xs cursor-not-allowed";
                 return;
             }
 
             const assignment = floatedAssignments.find(a => a.id === assignId);
+            let submittedAssignments = JSON.parse(localStorage.getItem('portal_assignments')) || [];
+            let alreadySubmitted = submittedAssignments.find(a => a.title === assignment.title && a.mis === currentAuthenticatedStudent.mis && a.course === currentAuthenticatedStudent.course);
+
+            if (alreadySubmitted) {
+                banner.className = "text-[11px] p-2 rounded bg-emerald-950/80 border border-emerald-700 text-emerald-300 font-mono font-bold";
+                banner.innerText = `✅ Submitted on ${alreadySubmitted.timestamp}`;
+                uploadBtn.disabled = true;
+                uploadBtn.className = "w-full bg-slate-700 text-emerald-400 font-bold py-2.5 rounded-lg text-xs cursor-not-allowed border border-emerald-800";
+                uploadBtn.innerHTML = `<i class="fa-solid fa-circle-check"></i> Solution Uploaded`;
+                return;
+            }
+
             if (assignment) {
                 const deadlineDate = new Date(assignment.deadline);
                 const now = new Date();
@@ -292,11 +341,13 @@
                     banner.innerText = `⚠️ Submission Closed! Deadline exceeded on ${deadlineDate.toLocaleString()}`;
                     uploadBtn.disabled = true;
                     uploadBtn.className = "w-full bg-slate-700 text-slate-500 font-bold py-2.5 rounded-lg text-xs cursor-not-allowed";
+                    uploadBtn.innerHTML = `<i class="fa-solid fa-lock"></i> Deadline Exceeded`;
                 } else {
                     banner.className = "text-[11px] p-2 rounded bg-indigo-950/80 border border-indigo-700 text-indigo-300 font-mono";
                     banner.innerText = `⏳ Cut-off Deadline: ${deadlineDate.toLocaleString()}`;
                     uploadBtn.disabled = false;
                     uploadBtn.className = "w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg text-xs transition shadow-md flex items-center justify-center gap-2";
+                    uploadBtn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Submit Assignment`;
                 }
             }
         }
@@ -309,6 +360,15 @@
             if (!assignId) return alert("No valid assignment selected.");
 
             const assignment = floatedAssignments.find(a => a.id === assignId);
+
+            // Double check single submission lock
+            let submittedAssignments = JSON.parse(localStorage.getItem('portal_assignments')) || [];
+            let alreadySubmitted = submittedAssignments.find(a => a.title === assignment.title && a.mis === currentAuthenticatedStudent.mis && a.course === currentAuthenticatedStudent.course);
+
+            if (alreadySubmitted) {
+                return alert("You have already submitted your solution for this assignment!");
+            }
+
             const file = fileInput.files[0];
             const uploadBtn = document.getElementById('upload-assignment-btn');
 
@@ -335,14 +395,11 @@
                 })
                 .then(res => res.json())
                 .then(data => {
-                    uploadBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit Assignment';
-                    uploadBtn.disabled = false;
-
                     if (data.status === 'success') {
                         alert("Assignment submitted successfully!");
                         
-                        let submittedAssignments = JSON.parse(localStorage.getItem('portal_assignments')) || [];
-                        submittedAssignments.push({
+                        let submitted = JSON.parse(localStorage.getItem('portal_assignments')) || [];
+                        submitted.push({
                             mis: currentAuthenticatedStudent.mis,
                             studentName: currentAuthenticatedStudent.name,
                             course: currentAuthenticatedStudent.course,
@@ -350,7 +407,7 @@
                             driveLink: data.url,
                             timestamp: new Date().toLocaleString()
                         });
-                        localStorage.setItem('portal_assignments', JSON.stringify(submittedAssignments));
+                        localStorage.setItem('portal_assignments', JSON.stringify(submitted));
 
                         fetch(SCRIPT_URL, {
                             method: 'POST',
@@ -358,23 +415,38 @@
                             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                             body: JSON.stringify({
                                 action: 'sync_database',
-                                driveSubmissions: submittedAssignments
+                                driveSubmissions: submitted
                             })
                         });
 
                         fileInput.value = '';
+                        updateAssignmentDeadlineDisplay();
                     } else {
                         alert("Submission Error: " + (data.message || "Unknown error"));
+                        uploadBtn.disabled = false;
+                        uploadBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit Assignment';
                     }
                 })
                 .catch(err => {
-                    uploadBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit Assignment';
                     uploadBtn.disabled = false;
+                    uploadBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit Assignment';
                     alert("Submission Error: " + err.message);
                 });
             };
 
             reader.readAsDataURL(file);
+        }
+
+        /* --- 4. BUG FIX: CONSISTENT FULLSCREEN PROCTORING ENGINE --- */
+        function triggerRobustFullscreen() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(() => {});
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen();
+            }
         }
 
         function startSelectedTest() {
@@ -387,21 +459,15 @@
             let existingSubmissions = JSON.parse(localStorage.getItem('portal_test_submissions')) || [];
             let alreadyDone = existingSubmissions.find(s => s.testId === testId && s.mis === currentAuthenticatedStudent.mis);
             if (alreadyDone) {
-                if (confirm(`You completed this exam on ${alreadyDone.timestamp}.\nScore: ${alreadyDone.score} / ${alreadyDone.totalMarks}\n\nClear history to retake for testing purposes?`)) {
-                    let filtered = existingSubmissions.filter(s => !(s.testId === testId && s.mis === currentAuthenticatedStudent.mis));
-                    localStorage.setItem('portal_test_submissions', JSON.stringify(filtered));
-                } else {
-                    return;
-                }
+                return alert(`Assessment Lock: You completed this exam on ${alreadyDone.timestamp}.\nScore: ${alreadyDone.score} / ${alreadyDone.totalMarks}`);
             }
 
-            if (!confirm("PROCTORED EXAM WARNING:\n\n1. The test will enter full-screen mode.\n2. Switching tabs or exiting full-screen will AUTO-SUBMIT your exam immediately!\n\nAre you ready to begin?")) {
+            if (!confirm("PROCTORED EXAM WARNING:\n\n1. The test will enter FULLSCREEN mode.\n2. Switching tabs or exiting fullscreen will AUTO-SUBMIT your exam immediately!\n\nAre you ready to begin?")) {
                 return;
             }
 
-            if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen().catch(() => {});
-            }
+            // Force Fullscreen launch
+            triggerRobustFullscreen();
 
             isExamInProgress = true;
 
@@ -423,7 +489,7 @@
         });
 
         document.addEventListener("fullscreenchange", function() {
-            if (isExamInProgress && !document.fullscreenElement) {
+            if (isExamInProgress && !document.fullscreenElement && !document.webkitFullscreenElement) {
                 alert("🚨 SECURITY VIOLATION: Fullscreen mode exited! Your exam is being automatically submitted.");
                 submitStudentTest(true, "Auto-submitted (Exited Fullscreen)");
             }
