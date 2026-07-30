@@ -3,304 +3,307 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Faculty Academic Portal & Assessment Manager</title>
+    <title>Academic Workspace - Faculty Portal</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- SheetJS for Excel Parsing -->
+    <!-- SheetJS for Excel Upload -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- KaTeX for Math Equations -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
 </head>
-<body class="bg-slate-900 font-sans text-gray-100 min-h-screen flex flex-col justify-between">
+<body class="bg-slate-100 font-sans text-slate-800 min-h-screen flex">
 
-    <!-- TOP BAR -->
-    <header class="bg-slate-950 border-b border-slate-800 px-6 py-4 flex justify-between items-center shadow-md">
-        <div class="flex items-center space-x-3">
-            <i class="fa-solid fa-chalkboard-user text-2xl text-indigo-400"></i>
-            <span class="text-lg font-bold tracking-wide text-white">Faculty Academic Management Portal</span>
-        </div>
-        <div class="text-xs bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700 font-mono text-indigo-300">
-            <i class="fa-solid fa-user-shield mr-1 text-emerald-400"></i> Instructor Admin
-        </div>
-    </header>
-
-    <!-- MAIN CONTAINER -->
-    <main class="p-6 max-w-6xl w-full mx-auto flex-1 space-y-8">
-
-        <!-- NAVIGATION TABS -->
-        <div class="flex flex-wrap gap-3 border-b border-slate-800 pb-4">
-            <button onclick="switchTab('tab-courses')" id="btn-tab-courses" class="tab-btn bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2">
-                <i class="fa-solid fa-book-bookmark"></i> Course & Roster Registry
-            </button>
-            <button onclick="switchTab('tab-quizzes')" id="btn-tab-quizzes" class="tab-btn bg-slate-800 text-slate-300 hover:bg-slate-700 px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2">
-                <i class="fa-solid fa-file-pen"></i> Quiz & Exam Creator
-            </button>
-            <button onclick="switchTab('tab-assignments')" id="btn-tab-assignments" class="tab-btn bg-slate-800 text-slate-300 hover:bg-slate-700 px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2">
-                <i class="fa-solid fa-bullhorn"></i> Float Assignments
-            </button>
-            <button onclick="switchTab('tab-submissions')" id="btn-tab-submissions" class="tab-btn bg-slate-800 text-slate-300 hover:bg-slate-700 px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2">
-                <i class="fa-solid fa-square-poll-vertical"></i> Submissions & Grades
-            </button>
-        </div>
-
-        <!-- 1. COURSE & EXCEL ROSTER REGISTRATION -->
-        <section id="tab-courses" class="tab-content space-y-6">
-            <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl space-y-6">
-                <div class="flex items-center space-x-3 text-indigo-400">
-                    <i class="fa-solid fa-file-excel text-2xl text-emerald-400"></i>
-                    <div>
-                        <h2 class="text-xl font-bold text-white">Register Course & Upload Roster</h2>
-                        <p class="text-xs text-slate-400">Upload an Excel sheet (.xlsx, .xls, .csv) containing student MIS numbers and names.</p>
-                    </div>
+    <!-- LEFT SIDEBAR NAVIGATION -->
+    <aside class="w-64 bg-slate-950 text-slate-300 flex flex-col justify-between shrink-0 shadow-xl min-h-screen">
+        <div>
+            <!-- LOGO HEADER -->
+            <div class="p-6 border-b border-slate-800 flex items-center space-x-3">
+                <div class="p-2 bg-indigo-600 text-white rounded-lg">
+                    <i class="fa-solid fa-shield-halved text-xl"></i>
                 </div>
-
-                <div class="space-y-4 text-xs">
-                    <div>
-                        <label class="block font-semibold text-slate-300 mb-1">Course Code / Title</label>
-                        <input type="text" id="course-title-input" placeholder="e.g., UG 6th Sem - CFD 2026" class="w-full border border-slate-600 rounded-lg p-3 bg-slate-900 text-white font-semibold focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                    </div>
-
-                    <!-- EXCEL UPLOAD BOX -->
-                    <div class="border-2 border-dashed border-slate-600 bg-slate-900/50 rounded-xl p-5 text-center space-y-2">
-                        <i class="fa-solid fa-cloud-arrow-up text-3xl text-emerald-400"></i>
-                        <p class="font-semibold text-slate-300">Select Excel File (.xlsx, .csv)</p>
-                        <p class="text-[11px] text-slate-500">First column should contain <strong>MIS/Roll No</strong>, second column <strong>Student Name</strong>.</p>
-                        <input type="file" id="roster-excel-input" accept=".xlsx, .xls, .csv" class="block w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 cursor-pointer mx-auto max-w-sm pt-2">
-                    </div>
-
-                    <div class="text-center">
-                        <span class="text-slate-500 font-bold uppercase text-[10px]">-- OR Paste Roster Manually --</span>
-                    </div>
-
-                    <div>
-                        <label class="block font-semibold text-slate-300 mb-1">Manual List (Format: MIS, Name)</label>
-                        <textarea id="course-roster-input" rows="3" placeholder="112203001, Student Name&#10;112203002, Another Student" class="w-full border border-slate-600 rounded-lg p-3 bg-slate-900 text-white font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
-                    </div>
+                <div>
+                    <h1 class="font-bold text-white text-base tracking-wide leading-tight">Academic</h1>
+                    <span class="text-xs text-indigo-400 font-semibold tracking-wider">Workspace</span>
                 </div>
+            </div>
 
-                <button onclick="saveCourseRegistry()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl text-xs transition shadow-md flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-save"></i> Save & Register Course Roster
+            <!-- SIDEBAR NAV LINKS -->
+            <nav class="p-4 space-y-1.5 text-xs font-medium">
+                <button onclick="switchTab('tab-courses')" id="nav-tab-courses" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-indigo-600 text-white font-semibold transition shadow-md">
+                    <i class="fa-solid fa-book-bookmark text-base w-5"></i>
+                    <span>Courses & Rosters</span>
                 </button>
-            </div>
 
-            <!-- REGISTERED COURSES LIST -->
-            <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl space-y-4">
-                <h3 class="text-md font-bold text-white">Active Registered Courses</h3>
-                <div id="active-courses-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs"></div>
-            </div>
-        </section>
+                <button onclick="switchTab('tab-quizzes')" id="nav-tab-quizzes" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-900 hover:text-white transition">
+                    <i class="fa-solid fa-file-pen text-base w-5 text-amber-400"></i>
+                    <span>Assessment & Evaluation</span>
+                </button>
 
-        <!-- 2. QUIZ & EXAM CREATOR SECTION -->
-        <section id="tab-quizzes" class="tab-content hidden space-y-6">
-            <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl space-y-4">
-                <div class="flex items-center space-x-3 text-emerald-400">
-                    <i class="fa-solid fa-pen-ruler text-2xl"></i>
-                    <h2 class="text-xl font-bold text-white">Design & Publish Proctored Quiz</h2>
+                <button onclick="switchTab('tab-assignments')" id="nav-tab-assignments" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-900 hover:text-white transition">
+                    <i class="fa-solid fa-bullhorn text-base w-5 text-indigo-400"></i>
+                    <span>Float Assignments</span>
+                </button>
+
+                <button onclick="switchTab('tab-submissions')" id="nav-tab-submissions" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-900 hover:text-white transition">
+                    <i class="fa-solid fa-square-poll-vertical text-base w-5 text-emerald-400"></i>
+                    <span>Submissions & Grades</span>
+                </button>
+            </nav>
+        </div>
+
+        <!-- FOOTER STATUS -->
+        <div class="p-4 border-t border-slate-800 text-[11px] text-slate-500 font-mono text-center">
+            System Active | Shared Browser Sync
+        </div>
+    </aside>
+
+    <!-- RIGHT MAIN CONTENT WORKSPACE -->
+    <main class="flex-1 flex flex-col min-h-screen overflow-y-auto">
+        
+        <!-- TOP HEADER BAR -->
+        <header class="bg-white border-b border-slate-200 px-8 py-5 flex justify-between items-center shadow-sm">
+            <h2 class="text-xl font-bold text-slate-900">Dashboard Overview</h2>
+            <div class="text-xs text-slate-500 font-medium" id="current-date-display"></div>
+        </header>
+
+        <!-- CONTENT WORKSPACE AREA -->
+        <div class="p-8 space-y-8 flex-1">
+
+            <!-- 1. COURSES & ROSTERS WORKSPACE -->
+            <section id="tab-courses" class="tab-content grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                <!-- LEFT PANEL: ADD / REGISTER WORKSPACE -->
+                <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+                    <h3 class="text-lg font-bold text-slate-900">Add / Register Course Workspace</h3>
+
+                    <div class="space-y-4 text-xs">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Course Title</label>
+                            <input type="text" id="course-title-input" placeholder="e.g., MTech Automotive or MTech Thermal" class="w-full border border-slate-300 rounded-lg p-3 bg-slate-50 text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        </div>
+
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Enrollment Input Mode</label>
+                            <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl">
+                                <button type="button" onclick="toggleEnrollMode('excel')" id="btn-mode-excel" class="py-2 text-xs font-bold rounded-lg bg-white text-indigo-600 shadow-sm transition">Excel File</button>
+                                <button type="button" onclick="toggleEnrollMode('manual')" id="btn-mode-manual" class="py-2 text-xs font-semibold rounded-lg text-slate-600 transition">Manual Entry</button>
+                            </div>
+                        </div>
+
+                        <!-- EXCEL MODE -->
+                        <div id="mode-excel-box" class="space-y-2">
+                            <label class="block font-semibold text-slate-700">Excel Spreadsheet (.xlsx / .csv)</label>
+                            <input type="file" id="roster-excel-input" accept=".xlsx, .xls, .csv" class="block w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-600 hover:file:bg-indigo-100 cursor-pointer">
+                        </div>
+
+                        <!-- MANUAL MODE -->
+                        <div id="mode-manual-box" class="hidden space-y-2">
+                            <label class="block font-semibold text-slate-700">Manual MIS Roster (Format: MIS, Student Name)</label>
+                            <textarea id="course-roster-input" rows="4" placeholder="112203001, Amit Sharma&#10;112203002, Rahul Patil" class="w-full border border-slate-300 rounded-lg p-3 bg-slate-50 text-slate-800 font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+                        </div>
+                    </div>
+
+                    <button onclick="saveCourseRegistry()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl text-xs transition shadow-md">
+                        Save Course Roster Workspace
+                    </button>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                    <div>
-                        <label class="block font-semibold text-slate-300 mb-1">Assign to Course</label>
-                        <select id="quiz-course-select" class="w-full border border-slate-600 rounded-lg p-2.5 bg-slate-900 text-white font-semibold focus:outline-none"></select>
+                <!-- RIGHT PANEL: REGISTERED CLASS REGISTRIES TABLE -->
+                <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-bold text-slate-900">Registered Department Class Registries</h3>
+                        <select id="registry-course-select" onchange="renderSelectedRegistryTable()" class="border border-slate-300 rounded-lg p-2 bg-slate-50 text-xs font-semibold focus:outline-none max-w-xs"></select>
                     </div>
-                    <div>
-                        <label class="block font-semibold text-slate-300 mb-1">Quiz Title</label>
-                        <input type="text" id="quiz-title-input" placeholder="e.g., Quiz 1 - FDM & Discretization" class="w-full border border-slate-600 rounded-lg p-2.5 bg-slate-900 text-white focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block font-semibold text-slate-300 mb-1">Duration (Minutes)</label>
-                        <input type="number" id="quiz-duration-input" value="15" min="1" class="w-full border border-slate-600 rounded-lg p-2.5 bg-slate-900 text-white font-mono focus:outline-none">
+
+                    <div class="border border-slate-200 rounded-xl overflow-hidden">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+                                <tr>
+                                    <th class="p-3">MIS / Roll No</th>
+                                    <th class="p-3">Student Full Name</th>
+                                </tr>
+                            </thead>
+                            <tbody id="registry-table-body" class="divide-y divide-slate-100 text-slate-700"></tbody>
+                        </table>
                     </div>
                 </div>
 
-                <hr class="border-slate-700 my-4">
+            </section>
 
-                <!-- QUESTION BUILDER FORM -->
-                <div class="bg-slate-900/80 p-5 rounded-xl border border-slate-700 space-y-4 text-xs">
-                    <h3 class="font-bold text-indigo-300">Add Question to Quiz</h3>
+            <!-- 2. QUIZ & EXAM CREATOR WORKSPACE -->
+            <section id="tab-quizzes" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+                    <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-pen-ruler text-amber-500"></i> Design & Publish Proctored Quiz
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Target Course</label>
+                            <select id="quiz-course-select" class="w-full border border-slate-300 rounded-lg p-2.5 bg-slate-50 text-slate-800 font-semibold focus:outline-none"></select>
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Quiz Title</label>
+                            <input type="text" id="quiz-title-input" placeholder="e.g., Quiz 1 - FDM & Discretization" class="w-full border border-slate-300 rounded-lg p-2.5 bg-slate-50 text-slate-800 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Duration (Minutes)</label>
+                            <input type="number" id="quiz-duration-input" value="15" min="1" class="w-full border border-slate-300 rounded-lg p-2.5 bg-slate-50 text-slate-800 font-mono focus:outline-none">
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-4 text-xs">
+                        <h4 class="font-bold text-indigo-600">Add Question to Draft</h4>
+                        
+                        <div>
+                            <label class="block text-slate-700 mb-1 font-semibold">Question Text (Math supported with $...$)</label>
+                            <textarea id="q-text-input" rows="2" placeholder="e.g., What is the central difference scheme for $\frac{\partial u}{\partial x}$?" class="w-full border border-slate-300 rounded-lg p-2.5 bg-white text-slate-800 focus:outline-none"></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <input type="text" id="opt-0" placeholder="Option 1" class="border border-slate-300 rounded-lg p-2 bg-white text-slate-800 focus:outline-none">
+                            <input type="text" id="opt-1" placeholder="Option 2" class="border border-slate-300 rounded-lg p-2 bg-white text-slate-800 focus:outline-none">
+                            <input type="text" id="opt-2" placeholder="Option 3" class="border border-slate-300 rounded-lg p-2 bg-white text-slate-800 focus:outline-none">
+                            <input type="text" id="opt-3" placeholder="Option 4" class="border border-slate-300 rounded-lg p-2 bg-white text-slate-800 focus:outline-none">
+                        </div>
+
+                        <div class="flex items-center gap-6">
+                            <div>
+                                <label class="text-slate-700 font-semibold mr-2">Correct Option:</label>
+                                <select id="q-correct-select" class="border border-slate-300 rounded-lg p-2 bg-white text-slate-800 focus:outline-none">
+                                    <option value="0">Option 1</option>
+                                    <option value="1">Option 2</option>
+                                    <option value="2">Option 3</option>
+                                    <option value="3">Option 4</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-slate-700 font-semibold mr-2">Marks:</label>
+                                <input type="number" id="q-marks-input" value="1" min="1" class="w-20 border border-slate-300 rounded-lg p-2 bg-white text-slate-800 font-mono focus:outline-none">
+                            </div>
+                            <button type="button" onclick="addQuestionToQueue()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg text-xs transition">
+                                <i class="fa-solid fa-plus mr-1"></i> Add Question
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <h4 class="text-xs font-bold text-slate-500 uppercase">Draft Questions (<span id="draft-q-count">0</span>)</h4>
+                        <div id="queued-questions-container" class="space-y-2 text-xs"></div>
+                    </div>
+
+                    <button type="button" onclick="publishQuizToPortal()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-xs transition shadow-md">
+                        <i class="fa-solid fa-rocket mr-1"></i> Publish Quiz to Student Portal
+                    </button>
+                </div>
+            </section>
+
+            <!-- 3. FLOAT ASSIGNMENTS WORKSPACE -->
+            <section id="tab-assignments" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-paper-plane text-indigo-600"></i> Float New Assignment
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Target Course</label>
+                            <select id="assign-course-select" class="w-full border border-slate-300 rounded-lg p-2.5 bg-slate-50 text-slate-800 font-semibold focus:outline-none"></select>
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Assignment Title</label>
+                            <input type="text" id="assign-title-input" placeholder="e.g., Assignment 1 - CFD Mesh Generation" class="w-full border border-slate-300 rounded-lg p-2.5 bg-slate-50 text-slate-800 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Cut-off Deadline</label>
+                            <input type="datetime-local" id="assign-deadline-input" class="w-full border border-slate-300 rounded-lg p-2.5 bg-slate-50 text-slate-800 font-mono focus:outline-none">
+                        </div>
+                    </div>
+
+                    <button type="button" onclick="floatAssignmentToPortal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 rounded-lg text-xs transition shadow-md">
+                        Float Assignment
+                    </button>
+                </div>
+            </section>
+
+            <!-- 4. SUBMISSIONS & GRADES WORKSPACE -->
+            <section id="tab-submissions" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="text-lg font-bold text-slate-900">Student Drive & Quiz Submissions</h3>
                     
-                    <div>
-                        <label class="block text-slate-300 mb-1 font-semibold">Question Text (Math supported with $...$ or $$...$$)</label>
-                        <textarea id="q-text-input" rows="2" placeholder="e.g., What is the central difference scheme for $\frac{\partial u}{\partial x}$?" class="w-full border border-slate-600 rounded-lg p-2.5 bg-slate-900 text-white focus:outline-none"></textarea>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <input type="text" id="opt-0" placeholder="Option 1" class="border border-slate-600 rounded-lg p-2 bg-slate-900 text-white focus:outline-none">
-                        <input type="text" id="opt-1" placeholder="Option 2" class="border border-slate-600 rounded-lg p-2 bg-slate-900 text-white focus:outline-none">
-                        <input type="text" id="opt-2" placeholder="Option 3" class="border border-slate-600 rounded-lg p-2 bg-slate-900 text-white focus:outline-none">
-                        <input type="text" id="opt-3" placeholder="Option 4" class="border border-slate-600 rounded-lg p-2 bg-slate-900 text-white focus:outline-none">
-                    </div>
-
-                    <div class="flex items-center gap-6">
-                        <div>
-                            <label class="text-slate-300 font-semibold mr-2">Correct Option:</label>
-                            <select id="q-correct-select" class="border border-slate-600 rounded-lg p-2 bg-slate-900 text-white focus:outline-none">
-                                <option value="0">Option 1</option>
-                                <option value="1">Option 2</option>
-                                <option value="2">Option 3</option>
-                                <option value="3">Option 4</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="text-slate-300 font-semibold mr-2">Marks:</label>
-                            <input type="number" id="q-marks-input" value="1" min="1" class="w-20 border border-slate-600 rounded-lg p-2 bg-slate-900 text-white font-mono focus:outline-none">
-                        </div>
-                        <button onclick="addQuestionToQueue()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg text-xs transition flex items-center gap-1">
-                            <i class="fa-solid fa-plus"></i> Add Question
-                        </button>
+                    <div class="border border-slate-200 rounded-xl overflow-hidden">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+                                <tr>
+                                    <th class="p-3">Course</th>
+                                    <th class="p-3">MIS</th>
+                                    <th class="p-3">Student Name</th>
+                                    <th class="p-3">Quiz / Assignment</th>
+                                    <th class="p-3">Score / Link</th>
+                                    <th class="p-3">Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody id="submissions-tbody" class="divide-y divide-slate-100 text-slate-700"></tbody>
+                        </table>
                     </div>
                 </div>
+            </section>
 
-                <!-- QUEUED QUESTIONS PREVIEW -->
-                <div class="space-y-2">
-                    <h4 class="text-xs font-bold text-slate-300 uppercase">Questions in Current Draft (<span id="draft-q-count">0</span>)</h4>
-                    <div id="queued-questions-container" class="space-y-2 text-xs"></div>
-                </div>
-
-                <button onclick="publishQuizToPortal()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-xs transition shadow-md flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-rocket"></i> Publish Quiz to Student Portal
-                </button>
-            </div>
-
-            <!-- PUBLISHED QUIZZES LIST -->
-            <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl space-y-4">
-                <h3 class="text-md font-bold text-white">Active Published Quizzes</h3>
-                <div id="published-quizzes-container" class="space-y-3 text-xs"></div>
-            </div>
-        </section>
-
-        <!-- 3. FLOAT ASSIGNMENTS SECTION -->
-        <section id="tab-assignments" class="tab-content hidden space-y-6">
-            <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl space-y-4">
-                <div class="flex items-center space-x-3 text-indigo-400">
-                    <i class="fa-solid fa-file-arrow-up text-2xl"></i>
-                    <h2 class="text-xl font-bold text-white">Float New Assignment</h2>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                    <div>
-                        <label class="block font-semibold text-slate-300 mb-1">Target Course</label>
-                        <select id="assign-course-select" class="w-full border border-slate-600 rounded-lg p-2.5 bg-slate-900 text-white font-semibold focus:outline-none"></select>
-                    </div>
-                    <div>
-                        <label class="block font-semibold text-slate-300 mb-1">Assignment Title</label>
-                        <input type="text" id="assign-title-input" placeholder="e.g., Assignment 1 - 1D Heat Conduction" class="w-full border border-slate-600 rounded-lg p-2.5 bg-slate-900 text-white focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block font-semibold text-slate-300 mb-1">Cut-off Deadline</label>
-                        <input type="datetime-local" id="assign-deadline-input" class="w-full border border-slate-600 rounded-lg p-2.5 bg-slate-900 text-white font-mono focus:outline-none">
-                    </div>
-                </div>
-
-                <button onclick="floatAssignmentToPortal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 rounded-lg text-xs transition shadow-md flex items-center gap-2">
-                    <i class="fa-solid fa-paper-plane"></i> Float Assignment
-                </button>
-            </div>
-
-            <!-- FLOATED ASSIGNMENTS LIST -->
-            <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl space-y-4">
-                <h3 class="text-md font-bold text-white">Active Floated Assignments</h3>
-                <div id="floated-assignments-container" class="space-y-3 text-xs"></div>
-            </div>
-        </section>
-
-        <!-- 4. SUBMISSIONS & GRADES SECTION -->
-        <section id="tab-submissions" class="tab-content hidden space-y-6">
-            
-            <!-- ASSIGNMENTS DRIVE SUBMISSIONS -->
-            <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl space-y-4">
-                <div class="flex justify-between items-center">
-                    <h3 class="text-md font-bold text-white flex items-center gap-2">
-                        <i class="fa-brands fa-google-drive text-amber-400 text-lg"></i> Student Drive Submissions
-                    </h3>
-                    <button onclick="clearAssignmentSubmissions()" class="text-xs text-rose-400 hover:underline font-semibold">Clear All Submissions</button>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs text-slate-300 border-collapse">
-                        <thead class="bg-slate-900 text-indigo-300 uppercase font-mono border-b border-slate-700">
-                            <tr>
-                                <th class="p-3">Course</th>
-                                <th class="p-3">MIS Number</th>
-                                <th class="p-3">Student Name</th>
-                                <th class="p-3">Assignment</th>
-                                <th class="p-3">Submitted At</th>
-                                <th class="p-3">Drive Link</th>
-                            </tr>
-                        </thead>
-                        <tbody id="drive-submissions-tbody" class="divide-y divide-slate-700/60"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- QUIZ RESULTS TABLE -->
-            <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl space-y-4">
-                <div class="flex justify-between items-center">
-                    <h3 class="text-md font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-square-poll-vertical text-emerald-400 text-lg"></i> Proctored Quiz Results
-                    </h3>
-                    <button onclick="clearQuizSubmissions()" class="text-xs text-rose-400 hover:underline font-semibold">Clear Quiz Results</button>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs text-slate-300 border-collapse">
-                        <thead class="bg-slate-900 text-emerald-300 uppercase font-mono border-b border-slate-700">
-                            <tr>
-                                <th class="p-3">Course</th>
-                                <th class="p-3">MIS</th>
-                                <th class="p-3">Student Name</th>
-                                <th class="p-3">Quiz Title</th>
-                                <th class="p-3">Score</th>
-                                <th class="p-3">Status / Proctor Notes</th>
-                                <th class="p-3">Timestamp</th>
-                            </tr>
-                        </thead>
-                        <tbody id="quiz-results-tbody" class="divide-y divide-slate-700/60"></tbody>
-                    </table>
-                </div>
-            </div>
-
-        </section>
-
+        </div>
     </main>
-
-    <!-- FOOTER -->
-    <footer class="bg-slate-950 text-slate-600 text-xs py-4 text-center border-t border-slate-800">
-        Academic Management System &copy; 2026 | COEP Faculty Admin Portal
-    </footer>
 
     <!-- ENGINE SCRIPT -->
     <script>
         let draftQuizQuestions = [];
+        let currentEnrollMode = 'excel';
+
+        document.getElementById('current-date-display').innerText = new Date().toLocaleDateString('en-US', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.className = "tab-btn bg-slate-800 text-slate-300 hover:bg-slate-700 px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2";
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.className = "nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-900 hover:text-white transition";
             });
 
             document.getElementById(tabId).classList.remove('hidden');
-            const activeBtn = document.getElementById(`btn-${tabId}`);
+            const activeBtn = document.getElementById(`nav-${tabId}`);
             if (activeBtn) {
-                activeBtn.className = "tab-btn bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2";
+                activeBtn.className = "nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-indigo-600 text-white font-semibold transition shadow-md";
             }
 
             renderAllPortalData();
         }
 
-        /* --- 1. COURSE REGISTRY & EXCEL ROSTER PARSER --- */
+        function toggleEnrollMode(mode) {
+            currentEnrollMode = mode;
+            if (mode === 'excel') {
+                document.getElementById('mode-excel-box').classList.remove('hidden');
+                document.getElementById('mode-manual-box').classList.add('hidden');
+                document.getElementById('btn-mode-excel').className = "py-2 text-xs font-bold rounded-lg bg-white text-indigo-600 shadow-sm transition";
+                document.getElementById('btn-mode-manual').className = "py-2 text-xs font-semibold rounded-lg text-slate-600 transition";
+            } else {
+                document.getElementById('mode-excel-box').classList.add('hidden');
+                document.getElementById('mode-manual-box').classList.remove('hidden');
+                document.getElementById('btn-mode-excel').className = "py-2 text-xs font-semibold rounded-lg text-slate-600 transition";
+                document.getElementById('btn-mode-manual').className = "py-2 text-xs font-bold rounded-lg bg-white text-indigo-600 shadow-sm transition";
+            }
+        }
+
+        /* --- 1. COURSE ROSTER SAVER --- */
         function saveCourseRegistry() {
             const courseTitle = document.getElementById('course-title-input').value.trim();
-            const excelFileInput = document.getElementById('roster-excel-input');
-            const rawRosterText = document.getElementById('course-roster-input').value.trim();
+            if (!courseTitle) return alert("Please enter a Course Title.");
 
-            if (!courseTitle) return alert("Please enter a valid Course Title.");
+            if (currentEnrollMode === 'excel') {
+                const excelFileInput = document.getElementById('roster-excel-input');
+                if (!excelFileInput.files.length) return alert("Please select an Excel file.");
 
-            if (excelFileInput.files.length > 0) {
-                const file = excelFileInput.files[0];
                 const reader = new FileReader();
-
                 reader.onload = function(e) {
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
@@ -318,13 +321,14 @@
                         }
                     });
 
-                    if (!studentList.length) return alert("No valid student records found in the uploaded Excel file.");
-
+                    if (!studentList.length) return alert("No valid student records found in the Excel file.");
                     storeCourseData(courseTitle, studentList);
                 };
+                reader.readAsArrayBuffer(excelFileInput.files[0]);
+            } else {
+                const rawRosterText = document.getElementById('course-roster-input').value.trim();
+                if (!rawRosterText) return alert("Please enter student roster details.");
 
-                reader.readAsArrayBuffer(file);
-            } else if (rawRosterText) {
                 let studentList = [];
                 const lines = rawRosterText.split('\n');
                 lines.forEach(line => {
@@ -337,8 +341,6 @@
                 });
 
                 storeCourseData(courseTitle, studentList);
-            } else {
-                alert("Please upload an Excel sheet OR paste student MIS data.");
             }
         }
 
@@ -347,19 +349,10 @@
             courses[courseTitle] = studentList;
             localStorage.setItem('portal_courses', JSON.stringify(courses));
 
-            alert(`Course '${courseTitle}' successfully registered with ${studentList.length} students!`);
+            alert(`Course '${courseTitle}' successfully saved with ${studentList.length} students!`);
             document.getElementById('course-title-input').value = '';
             document.getElementById('course-roster-input').value = '';
             document.getElementById('roster-excel-input').value = '';
-
-            renderAllPortalData();
-        }
-
-        function deleteCourse(courseKey) {
-            if (!confirm(`Delete course '${courseKey}'?`)) return;
-            let courses = JSON.parse(localStorage.getItem('portal_courses')) || {};
-            delete courses[courseKey];
-            localStorage.setItem('portal_courses', JSON.stringify(courses));
             renderAllPortalData();
         }
 
@@ -376,6 +369,7 @@
             if (!text) return alert("Question text cannot be empty.");
             if (!o0 || !o1 || !o2 || !o3) return alert("Please fill in all 4 options.");
 
+            // Standardized question text property key
             draftQuizQuestions.push({
                 text: text,
                 options: [o0, o1, o2, o3],
@@ -397,12 +391,12 @@
             const container = document.getElementById('queued-questions-container');
 
             container.innerHTML = draftQuizQuestions.map((q, idx) => `
-                <div class="p-3 bg-slate-900 rounded-lg border border-slate-700 flex justify-between items-center">
+                <div class="p-3 bg-slate-100 rounded-lg border border-slate-200 flex justify-between items-center">
                     <div>
-                        <p class="font-semibold text-white">Q${idx + 1}: ${q.text}</p>
-                        <p class="text-[11px] text-slate-400">Correct: Option ${q.correct + 1} | Marks: ${q.marks}</p>
+                        <p class="font-semibold text-slate-800">Q${idx + 1}: ${q.text}</p>
+                        <p class="text-[11px] text-slate-500">Correct: Option ${q.correct + 1} | Marks: ${q.marks}</p>
                     </div>
-                    <button onclick="removeDraftQuestion(${idx})" class="text-rose-400 hover:text-rose-300 text-xs font-bold">Remove</button>
+                    <button onclick="removeDraftQuestion(${idx})" class="text-rose-600 hover:underline text-xs font-bold">Remove</button>
                 </div>
             `).join('');
         }
@@ -442,14 +436,6 @@
             renderAllPortalData();
         }
 
-        function deletePublishedQuiz(quizId) {
-            if (!confirm("Delete this published quiz?")) return;
-            let publishedTests = JSON.parse(localStorage.getItem('portal_published_tests')) || [];
-            publishedTests = publishedTests.filter(q => q.id !== quizId);
-            localStorage.setItem('portal_published_tests', JSON.stringify(publishedTests));
-            renderAllPortalData();
-        }
-
         /* --- 3. FLOATED ASSIGNMENTS LOGIC --- */
         function floatAssignmentToPortal() {
             const course = document.getElementById('assign-course-select').value;
@@ -477,128 +463,74 @@
             renderAllPortalData();
         }
 
-        function deleteFloatedAssignment(assignId) {
-            if (!confirm("Delete this floated assignment?")) return;
-            let floatedAssignments = JSON.parse(localStorage.getItem('portal_floated_assignments')) || [];
-            floatedAssignments = floatedAssignments.filter(a => a.id !== assignId);
-            localStorage.setItem('portal_floated_assignments', JSON.stringify(floatedAssignments));
-            renderAllPortalData();
-        }
-
         /* --- 4. DATA RENDERERS --- */
         function renderAllPortalData() {
             const courses = JSON.parse(localStorage.getItem('portal_courses')) || {};
             const courseKeys = Object.keys(courses);
 
-            // Populate Course Select Dropdowns
-            const courseDropdowns = ['quiz-course-select', 'assign-course-select'];
-            courseDropdowns.forEach(id => {
+            // Populate Course Selects
+            const dropdowns = ['registry-course-select', 'quiz-course-select', 'assign-course-select'];
+            dropdowns.forEach(id => {
                 const select = document.getElementById(id);
                 select.innerHTML = courseKeys.length
                     ? courseKeys.map(k => `<option value="${k}">${k}</option>`).join('')
-                    : '<option value="">No registered courses found</option>';
+                    : '<option value="">No registered courses</option>';
             });
 
-            // Render Courses List
-            const coursesContainer = document.getElementById('active-courses-container');
-            coursesContainer.innerHTML = courseKeys.length
-                ? courseKeys.map(k => `
-                    <div class="p-4 bg-slate-900 rounded-xl border border-slate-700 flex justify-between items-center">
-                        <div>
-                            <h4 class="font-bold text-white">${k}</h4>
-                            <p class="text-[11px] text-indigo-400 font-mono">${courses[k].length} Student(s) Enrolled</p>
-                        </div>
-                        <button onclick="deleteCourse('${k}')" class="text-rose-400 hover:text-rose-300 font-bold"><i class="fa-solid fa-trash-can"></i></button>
-                    </div>
-                `).join('')
-                : '<p class="text-slate-500 italic">No courses registered yet.</p>';
+            renderSelectedRegistryTable();
+            renderSubmissionsTable();
+        }
 
-            // Render Published Quizzes
-            const publishedTests = JSON.parse(localStorage.getItem('portal_published_tests')) || [];
-            const quizzesContainer = document.getElementById('published-quizzes-container');
-            quizzesContainer.innerHTML = publishedTests.length
-                ? publishedTests.map(q => `
-                    <div class="p-4 bg-slate-900 rounded-xl border border-slate-700 flex justify-between items-center">
-                        <div>
-                            <span class="text-[10px] font-bold bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded font-mono">${q.course}</span>
-                            <h4 class="font-bold text-white mt-1">${q.title}</h4>
-                            <p class="text-[11px] text-slate-400 font-mono">${q.questions.length} Questions | ${q.duration} Mins Duration</p>
-                        </div>
-                        <button onclick="deletePublishedQuiz('${q.id}')" class="text-rose-400 hover:text-rose-300 font-bold"><i class="fa-solid fa-trash-can"></i></button>
-                    </div>
-                `).join('')
-                : '<p class="text-slate-500 italic">No active published quizzes.</p>';
+        function renderSelectedRegistryTable() {
+            const courses = JSON.parse(localStorage.getItem('portal_courses')) || {};
+            const selectedCourse = document.getElementById('registry-course-select').value;
+            const tbody = document.getElementById('registry-table-body');
 
-            // Render Floated Assignments
-            const floatedAssignments = JSON.parse(localStorage.getItem('portal_floated_assignments')) || [];
-            const assignContainer = document.getElementById('floated-assignments-container');
-            assignContainer.innerHTML = floatedAssignments.length
-                ? floatedAssignments.map(a => `
-                    <div class="p-4 bg-slate-900 rounded-xl border border-slate-700 flex justify-between items-center">
-                        <div>
-                            <span class="text-[10px] font-bold bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded font-mono">${a.course}</span>
-                            <h4 class="font-bold text-white mt-1">${a.title}</h4>
-                            <p class="text-[11px] text-amber-400 font-mono">Deadline: ${new Date(a.deadline).toLocaleString()}</p>
-                        </div>
-                        <button onclick="deleteFloatedAssignment('${a.id}')" class="text-rose-400 hover:text-rose-300 font-bold"><i class="fa-solid fa-trash-can"></i></button>
-                    </div>
-                `).join('')
-                : '<p class="text-slate-500 italic">No floated assignments.</p>';
-
-            // Render Drive Submissions Table
-            const submittedAssignments = JSON.parse(localStorage.getItem('portal_assignments')) || [];
-            const driveTbody = document.getElementById('drive-submissions-tbody');
-            driveTbody.innerHTML = submittedAssignments.length
-                ? submittedAssignments.map(s => `
+            if (selectedCourse && courses[selectedCourse]) {
+                tbody.innerHTML = courses[selectedCourse].map(s => `
                     <tr>
-                        <td class="p-3 font-semibold text-slate-300">${s.course || '-'}</td>
-                        <td class="p-3 font-mono text-indigo-300">${s.mis}</td>
-                        <td class="p-3">${s.studentName}</td>
-                        <td class="p-3">${s.title}</td>
-                        <td class="p-3 text-[11px] font-mono text-slate-400">${s.timestamp}</td>
-                        <td class="p-3">
-                            <a href="${s.driveLink}" target="_blank" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] px-3 py-1 rounded-md font-semibold transition inline-flex items-center gap-1">
-                                <i class="fa-solid fa-arrow-up-right-from-square"></i> Open File
-                            </a>
-                        </td>
+                        <td class="p-3 font-mono font-bold text-slate-900">${s.roll_no}</td>
+                        <td class="p-3 font-medium text-slate-700">${s.student_name}</td>
                     </tr>
-                `).join('')
-                : '<tr><td colspan="6" class="p-4 text-center text-slate-500 italic">No student drive submissions recorded yet.</td></tr>';
+                `).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="2" class="p-4 text-center text-slate-400 italic">No class registry data selected.</td></tr>';
+            }
+        }
 
-            // Render Quiz Results Table
+        function renderSubmissionsTable() {
             const quizResults = JSON.parse(localStorage.getItem('portal_test_submissions')) || [];
-            const quizTbody = document.getElementById('quiz-results-tbody');
-            quizTbody.innerHTML = quizResults.length
-                ? quizResults.map(r => `
+            const driveResults = JSON.parse(localStorage.getItem('portal_assignments')) || [];
+            const tbody = document.getElementById('submissions-tbody');
+
+            let allRows = [];
+            quizResults.forEach(q => {
+                allRows.push(`
                     <tr>
-                        <td class="p-3 font-semibold text-slate-300">${r.course || '-'}</td>
-                        <td class="p-3 font-mono text-emerald-300">${r.mis}</td>
-                        <td class="p-3">${r.studentName}</td>
-                        <td class="p-3">${r.testTitle}</td>
-                        <td class="p-3 font-bold font-mono text-amber-400">${r.score} / ${r.totalMarks}</td>
-                        <td class="p-3 text-[11px]">
-                            <span class="px-2 py-0.5 rounded font-mono ${r.submissionType.includes('Auto') ? 'bg-rose-950 text-rose-300 border border-rose-700' : 'bg-emerald-950 text-emerald-300 border border-emerald-700'}">
-                                ${r.submissionType || 'Manual Submission'}
-                            </span>
-                        </td>
-                        <td class="p-3 text-[11px] font-mono text-slate-400">${r.timestamp}</td>
+                        <td class="p-3 font-semibold text-indigo-600">${q.course}</td>
+                        <td class="p-3 font-mono font-bold text-slate-900">${q.mis}</td>
+                        <td class="p-3">${q.studentName}</td>
+                        <td class="p-3">${q.testTitle}</td>
+                        <td class="p-3 font-bold font-mono text-emerald-600">${q.score} / ${q.totalMarks}</td>
+                        <td class="p-3 text-[11px] font-mono text-slate-500">${q.timestamp}</td>
                     </tr>
-                `).join('')
-                : '<tr><td colspan="7" class="p-4 text-center text-slate-500 italic">No quiz submissions recorded yet.</td></tr>';
-        }
+                `);
+            });
 
-        function clearAssignmentSubmissions() {
-            if (confirm("Clear all student drive submission records?")) {
-                localStorage.removeItem('portal_assignments');
-                renderAllPortalData();
-            }
-        }
+            driveResults.forEach(d => {
+                allRows.push(`
+                    <tr>
+                        <td class="p-3 font-semibold text-indigo-600">${d.course}</td>
+                        <td class="p-3 font-mono font-bold text-slate-900">${d.mis}</td>
+                        <td class="p-3">${d.studentName}</td>
+                        <td class="p-3">${d.title}</td>
+                        <td class="p-3"><a href="${d.driveLink}" target="_blank" class="text-indigo-600 hover:underline font-semibold"><i class="fa-solid fa-external-link mr-1"></i>Open Drive File</a></td>
+                        <td class="p-3 text-[11px] font-mono text-slate-500">${d.timestamp}</td>
+                    </tr>
+                `);
+            });
 
-        function clearQuizSubmissions() {
-            if (confirm("Clear all quiz result records?")) {
-                localStorage.removeItem('portal_test_submissions');
-                renderAllPortalData();
-            }
+            tbody.innerHTML = allRows.length ? allRows.join('') : '<tr><td colspan="6" class="p-4 text-center text-slate-400 italic">No student submissions found.</td></tr>';
         }
 
         // Initial Load
