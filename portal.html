@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- SheetJS for Excel Parsing -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- KaTeX for CFD & Math Equations Preview -->
+    <!-- KaTeX for Math Equations -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
 </head>
@@ -174,7 +174,7 @@
                             <i class="fa-solid fa-bullhorn"></i> Float Assignment
                         </button>
                         <button id="subtab-btn-results" onclick="switchAssessmentSubTab('results')" class="flex-1 py-2 px-4 rounded-lg text-gray-600 hover:bg-gray-100 transition flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-chart-line"></i> Evaluated Submissions & Drive Logs
+                            <i class="fa-solid fa-chart-line"></i> Evaluated Submissions & Grading
                         </button>
                     </div>
 
@@ -329,28 +329,42 @@
 
                     <!-- SUB-TAB 3: EVALUATED RESULTS & DRIVE LOGS -->
                     <div id="subtab-results-box" class="subtab-content hidden bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-6">
-                        <div class="flex justify-between items-center border-b pb-3">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-3 gap-4">
                             <div>
-                                <h3 class="text-lg font-bold text-gray-900">3. Evaluated Results & Google Drive Submissions</h3>
-                                <p class="text-xs text-gray-500">Live student quiz logs, cheat flags, and assignment file links</p>
+                                <h3 class="text-lg font-bold text-gray-900">3. Course-Wise Evaluated Results & Assignment Grading</h3>
+                                <p class="text-xs text-gray-500">View student quiz scores, assign assignment marks, and export grade archives.</p>
                             </div>
+                            
+                            <!-- 🔍 COURSE FILTER DROPDOWN -->
+                            <div class="flex items-center space-x-3 bg-slate-50 p-2 rounded-xl border border-gray-200">
+                                <label class="text-xs font-bold text-slate-700 whitespace-nowrap"><i class="fa-solid fa-filter mr-1 text-indigo-600"></i>Filter Course:</label>
+                                <select id="filter-eval-course" onchange="renderEvaluatedTables()" class="text-xs font-bold border border-gray-300 rounded-lg p-1.5 bg-white focus:outline-none text-slate-800">
+                                    <option value="ALL">All Courses</option>
+                                </select>
+                            </div>
+
                             <div class="flex space-x-2 text-xs">
-                                <button onclick="downloadTestScoresCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg shadow-xs">Export Test CSV</button>
-                                <button onclick="downloadAssignmentsCSV()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-lg shadow-xs">Export Assignments CSV</button>
+                                <button onclick="downloadTestScoresCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg shadow-xs">Export Quiz CSV</button>
+                                <button onclick="downloadAssignmentsCSV()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-lg shadow-xs">Export Assignment CSV</button>
                             </div>
                         </div>
 
+                        <!-- ONLINE TEST SCORES TABLE -->
                         <div class="space-y-2">
-                            <h4 class="font-bold text-xs text-gray-800">Online Test Scores Log</h4>
+                            <h4 class="font-bold text-xs text-indigo-700 flex items-center gap-1.5">
+                                <i class="fa-solid fa-square-poll-vertical"></i> Online Proctored Quiz Results
+                            </h4>
                             <div class="overflow-x-auto rounded-xl border border-gray-200">
                                 <table class="w-full text-left text-xs">
                                     <thead class="bg-gray-50 border-b text-gray-600 font-semibold">
                                         <tr>
+                                            <th class="p-2.5">Course</th>
                                             <th class="p-2.5">MIS Number</th>
                                             <th class="p-2.5">Student Name</th>
-                                            <th class="p-2.5">Course & Test Title</th>
-                                            <th class="p-2.5 text-center">Score</th>
-                                            <th class="p-2.5 text-center">Cheat Flags</th>
+                                            <th class="p-2.5">Quiz Title</th>
+                                            <th class="p-2.5 text-center">Marks Obtained</th>
+                                            <th class="p-2.5 text-center">Percentage</th>
+                                            <th class="p-2.5 text-center">Submission Status</th>
                                             <th class="p-2.5 text-right">Actions</th>
                                         </tr>
                                     </thead>
@@ -359,17 +373,23 @@
                             </div>
                         </div>
 
+                        <!-- SUBMITTED ASSIGNMENTS & GRADING TABLE -->
                         <div class="space-y-2 pt-4">
-                            <h4 class="font-bold text-xs text-gray-800">Submitted Assignments (Google Drive Direct Links)</h4>
+                            <h4 class="font-bold text-xs text-emerald-700 flex items-center gap-1.5">
+                                <i class="fa-brands fa-google-drive"></i> Submitted Assignments & Faculty Grading
+                            </h4>
                             <div class="overflow-x-auto rounded-xl border border-gray-200">
                                 <table class="w-full text-left text-xs">
                                     <thead class="bg-gray-50 border-b text-gray-600 font-semibold">
                                         <tr>
+                                            <th class="p-2.5">Course</th>
                                             <th class="p-2.5">MIS Number</th>
                                             <th class="p-2.5">Student Name</th>
-                                            <th class="p-2.5">Course & Title</th>
-                                            <th class="p-2.5">Google Drive Link</th>
-                                            <th class="p-2.5 text-right">Timestamp</th>
+                                            <th class="p-2.5">Assignment Title</th>
+                                            <th class="p-2.5">Drive Solution</th>
+                                            <th class="p-2.5 text-center">Grade / Marks</th>
+                                            <th class="p-2.5">Faculty Remarks</th>
+                                            <th class="p-2.5 text-right">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody id="assignments-table-body" class="divide-y divide-gray-100 text-gray-700"></tbody>
@@ -649,8 +669,6 @@
 
         let publishedTests = JSON.parse(localStorage.getItem('portal_published_tests')) || [];
         let floatedAssignments = JSON.parse(localStorage.getItem('portal_floated_assignments')) || [];
-        let evaluatedTestResults = JSON.parse(localStorage.getItem('portal_test_results')) || [];
-        let submittedAssignments = JSON.parse(localStorage.getItem('portal_assignments')) || [];
         let attendanceHistory = JSON.parse(localStorage.getItem('portal_attendance')) || [];
         let researchProjects = JSON.parse(localStorage.getItem('portal_research')) || [];
         let computedExamSchedule = JSON.parse(localStorage.getItem('portal_exams')) || [];
@@ -679,7 +697,23 @@
             resultsBtn.className = subTab === 'results' ? activeClass : inactiveClass;
 
             if (subTab === 'assignment') renderFloatedAssignments();
-            if (subTab === 'results') renderEvaluatedTables();
+            if (subTab === 'results') {
+                populateCourseFilterDropdown();
+                renderEvaluatedTables();
+            }
+        }
+
+        function populateCourseFilterDropdown() {
+            const keys = Object.keys(academicCourses);
+            const select = document.getElementById('filter-eval-course');
+            const currentVal = select.value;
+
+            select.innerHTML = `<option value="ALL">All Courses</option>` + 
+                keys.map(k => `<option value="${k}">${k}</option>`).join('');
+
+            if (currentVal && (keys.includes(currentVal) || currentVal === 'ALL')) {
+                select.value = currentVal;
+            }
         }
 
         // Roster Registration Modes
@@ -767,7 +801,6 @@
 
             if (!qText) return alert("Enter question text.");
 
-            // Standardized text property to prevent 'undefined' text in student.html
             let qObj = { text: qText, q: qText, type: qType, positiveMarks: pos, negativeMarks: neg, perQuestionSeconds: sec, marks: pos };
 
             if (qType === 'mcq') {
@@ -854,53 +887,137 @@
             `).join('');
         }
 
-        // Results
+        /* --- 📊 COURSE-WISE RESULTS & GRADING ENGINE --- */
         function renderEvaluatedTables() {
+            const selectedCourseFilter = document.getElementById('filter-eval-course').value;
+
+            // 1. QUIZ RESULTS TABLE
             const testBody = document.getElementById('test-results-table-body');
-            let testSubmissions = JSON.parse(localStorage.getItem('portal_test_submissions')) || evaluatedTestResults;
+            let testSubmissions = JSON.parse(localStorage.getItem('portal_test_submissions')) || [];
 
-            testBody.innerHTML = testSubmissions.length ? testSubmissions.map((r, i) => `
-                <tr>
-                    <td class="p-2.5 font-mono font-bold">${r.mis}</td>
-                    <td class="p-2.5">${r.studentName}</td>
-                    <td class="p-2.5">${r.course} - ${r.testTitle || r.title}</td>
-                    <td class="p-2.5 text-center font-bold text-emerald-600">${r.score} / ${r.totalMarks || '-'}</td>
-                    <td class="p-2.5 text-center font-bold text-xs"><span class="px-2 py-0.5 rounded bg-slate-100">${r.submissionType || 'Completed'}</span></td>
-                    <td class="p-2.5 text-right"><button onclick="testSubmissions.splice(${i},1);localStorage.setItem('portal_test_submissions',JSON.stringify(testSubmissions));renderEvaluatedTables();" class="text-rose-600 font-bold">Reset</button></td>
-                </tr>
-            `).join('') : '<tr><td colspan="6" class="p-4 text-center text-gray-400 italic">No test results recorded.</td></tr>';
+            if (selectedCourseFilter !== 'ALL') {
+                testSubmissions = testSubmissions.filter(s => s.course === selectedCourseFilter);
+            }
 
+            testBody.innerHTML = testSubmissions.length ? testSubmissions.map((r, i) => {
+                const totalM = parseInt(r.totalMarks) || 1;
+                const scoreM = parseInt(r.score) || 0;
+                const pct = ((scoreM / totalM) * 100).toFixed(1);
+
+                return `
+                    <tr>
+                        <td class="p-2.5 font-bold text-indigo-700">${r.course || '-'}</td>
+                        <td class="p-2.5 font-mono font-bold text-slate-900">${r.mis}</td>
+                        <td class="p-2.5 font-medium">${r.studentName}</td>
+                        <td class="p-2.5 font-medium">${r.testTitle || r.title || 'Quiz'}</td>
+                        <td class="p-2.5 text-center font-bold text-emerald-600 font-mono">${scoreM} / ${totalM}</td>
+                        <td class="p-2.5 text-center font-bold font-mono ${pct >= 40 ? 'text-indigo-600' : 'text-rose-600'}">${pct}%</td>
+                        <td class="p-2.5 text-center">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold ${r.submissionType?.includes('Auto') ? 'bg-rose-100 text-rose-700 border border-rose-300' : 'bg-emerald-100 text-emerald-700 border border-emerald-300'}">
+                                ${r.submissionType || 'Completed'}
+                            </span>
+                        </td>
+                        <td class="p-2.5 text-right"><button onclick="deleteQuizResultRecord(${i})" class="text-rose-600 font-bold hover:underline">Reset</button></td>
+                    </tr>
+                `;
+            }).join('') : '<tr><td colspan="8" class="p-4 text-center text-gray-400 italic">No quiz submissions found for this course selection.</td></tr>';
+
+            // 2. ASSIGNMENT SUBMISSIONS & FACULTY GRADING TABLE
             const assignBody = document.getElementById('assignments-table-body');
-            let driveSubmissions = JSON.parse(localStorage.getItem('portal_assignments')) || submittedAssignments;
+            let driveSubmissions = JSON.parse(localStorage.getItem('portal_assignments')) || [];
 
-            assignBody.innerHTML = driveSubmissions.length ? driveSubmissions.map(a => `
+            if (selectedCourseFilter !== 'ALL') {
+                driveSubmissions = driveSubmissions.filter(a => a.course === selectedCourseFilter);
+            }
+
+            assignBody.innerHTML = driveSubmissions.length ? driveSubmissions.map((a, i) => `
                 <tr>
-                    <td class="p-2.5 font-mono font-bold">${a.mis}</td>
-                    <td class="p-2.5">${a.studentName}</td>
-                    <td class="p-2.5">${a.course} - ${a.title}</td>
-                    <td class="p-2.5"><a href="${a.driveLink || '#'}" target="_blank" class="font-mono text-indigo-600 hover:underline">View in Drive 🔗</a></td>
-                    <td class="p-2.5 text-right font-mono text-gray-500">${a.timestamp}</td>
+                    <td class="p-2.5 font-bold text-indigo-700">${a.course || '-'}</td>
+                    <td class="p-2.5 font-mono font-bold text-slate-900">${a.mis}</td>
+                    <td class="p-2.5 font-medium">${a.studentName}</td>
+                    <td class="p-2.5 font-medium">${a.title}</td>
+                    <td class="p-2.5">
+                        <a href="${a.driveLink || '#'}" target="_blank" class="font-mono text-indigo-600 font-bold hover:underline inline-flex items-center gap-1">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Drive File
+                        </a>
+                    </td>
+                    <td class="p-2.5 text-center font-mono font-bold text-amber-600">
+                        ${a.grade !== undefined && a.grade !== '' ? a.grade : '<span class="text-gray-400 font-normal italic">Ungraded</span>'}
+                    </td>
+                    <td class="p-2.5 text-slate-600 italic">
+                        ${a.remarks || '<span class="text-gray-400">No remarks</span>'}
+                    </td>
+                    <td class="p-2.5 text-right">
+                        <button onclick="openGradeAssignmentModal(${i})" class="bg-indigo-600 hover:bg-indigo-700 text-white px-2.5 py-1 rounded font-bold transition">
+                            <i class="fa-solid fa-marker mr-1"></i> Grade
+                        </button>
+                    </td>
                 </tr>
-            `).join('') : '<tr><td colspan="5" class="p-4 text-center text-gray-400 italic">No assignments submitted yet.</td></tr>';
+            `).join('') : '<tr><td colspan="8" class="p-4 text-center text-gray-400 italic">No assignment submissions found for this course selection.</td></tr>';
+        }
+
+        function deleteQuizResultRecord(index) {
+            if (!confirm("Reset/delete this student's quiz submission?")) return;
+            let testSubmissions = JSON.parse(localStorage.getItem('portal_test_submissions')) || [];
+            testSubmissions.splice(index, 1);
+            localStorage.setItem('portal_test_submissions', JSON.stringify(testSubmissions));
+            renderEvaluatedTables();
+        }
+
+        function openGradeAssignmentModal(index) {
+            let driveSubmissions = JSON.parse(localStorage.getItem('portal_assignments')) || [];
+            const sub = driveSubmissions[index];
+            if (!sub) return;
+
+            const currentGrade = sub.grade || '';
+            const currentRemarks = sub.remarks || '';
+
+            const newGrade = prompt(`Grade Assignment for ${sub.studentName} (${sub.mis}):\nEnter Marks / Grade (e.g. 10/10 or A):`, currentGrade);
+            if (newGrade === null) return;
+
+            const newRemarks = prompt(`Enter Faculty Remarks / Feedback:`, currentRemarks);
+
+            driveSubmissions[index].grade = newGrade.trim();
+            driveSubmissions[index].remarks = (newRemarks || '').trim();
+
+            localStorage.setItem('portal_assignments', JSON.stringify(driveSubmissions));
+            alert("Grade and remarks updated successfully!");
+            renderEvaluatedTables();
         }
 
         function downloadTestScoresCSV() {
-            let testSubmissions = JSON.parse(localStorage.getItem('portal_test_submissions')) || evaluatedTestResults;
-            let csv = "MIS,Student Name,Course,Test Title,Score,Submission Status,Timestamp\n";
-            testSubmissions.forEach(r => { csv += `${r.mis},${r.studentName},${r.course},${r.testTitle || r.title},${r.score},${r.submissionType || 'Submitted'},${r.timestamp}\n`; });
+            let testSubmissions = JSON.parse(localStorage.getItem('portal_test_submissions')) || [];
+            const selectedCourseFilter = document.getElementById('filter-eval-course').value;
+            if (selectedCourseFilter !== 'ALL') {
+                testSubmissions = testSubmissions.filter(s => s.course === selectedCourseFilter);
+            }
+
+            let csv = "Course,MIS,Student Name,Quiz Title,Score,Total Marks,Status,Timestamp\n";
+            testSubmissions.forEach(r => { 
+                csv += `"${r.course || ''}","${r.mis}","${r.studentName}","${r.testTitle || r.title || ''}",${r.score || 0},${r.totalMarks || 0},"${r.submissionType || 'Submitted'}","${r.timestamp}"\n`; 
+            });
+
             const link = document.createElement("a");
             link.setAttribute("href", encodeURI("data:text/csv;charset=utf-8," + csv));
-            link.setAttribute("download", `Test_Scores.csv`);
+            link.setAttribute("download", `Quiz_Scores_${selectedCourseFilter}.csv`);
             document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
 
         function downloadAssignmentsCSV() {
-            let driveSubmissions = JSON.parse(localStorage.getItem('portal_assignments')) || submittedAssignments;
-            let csv = "MIS,Student Name,Course,Title,Drive Link,Timestamp\n";
-            driveSubmissions.forEach(a => { csv += `${a.mis},${a.studentName},${a.course},${a.title},${a.driveLink || 'N/A'},${a.timestamp}\n`; });
+            let driveSubmissions = JSON.parse(localStorage.getItem('portal_assignments')) || [];
+            const selectedCourseFilter = document.getElementById('filter-eval-course').value;
+            if (selectedCourseFilter !== 'ALL') {
+                driveSubmissions = driveSubmissions.filter(a => a.course === selectedCourseFilter);
+            }
+
+            let csv = "Course,MIS,Student Name,Assignment Title,Grade,Remarks,Drive Link,Timestamp\n";
+            driveSubmissions.forEach(a => { 
+                csv += `"${a.course || ''}","${a.mis}","${a.studentName}","${a.title}","${a.grade || 'Ungraded'}","${a.remarks || ''}","${a.driveLink || ''}","${a.timestamp}"\n`; 
+            });
+
             const link = document.createElement("a");
             link.setAttribute("href", encodeURI("data:text/csv;charset=utf-8," + csv));
-            link.setAttribute("download", `Assignments_Log.csv`);
+            link.setAttribute("download", `Assignments_Evaluation_${selectedCourseFilter}.csv`);
             document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
 
