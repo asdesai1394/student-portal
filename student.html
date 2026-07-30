@@ -88,7 +88,7 @@
                     </div>
                     <p class="text-xs text-slate-400">Warning: Assessments run in strict fullscreen. Switching tabs triggers auto-submission.</p>
                     
-                    <select id="available-tests-select" class="w-full border border-slate-600 rounded-lg p-2.5 bg-slate-900 text-white text-xs focus:outline-none"></select>
+                    <select id="available-tests-select" onchange="updateQuizAttemptStatus()" class="w-full border border-slate-600 rounded-lg p-2.5 bg-slate-900 text-white text-xs focus:outline-none"></select>
                     
                     <button id="launch-test-btn" onclick="startSelectedTest()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg text-xs transition shadow-md flex items-center justify-center gap-2">
                         <i class="fa-solid fa-expand"></i> Launch Proctored Test
@@ -198,7 +198,6 @@
                 : '<option value="">No registered courses found</option>';
         }
 
-        /* --- 1. BUG FIX: STRICT UNREGISTERED STUDENT BLOCK --- */
         function authenticateStudent() {
             const selectedCourse = document.getElementById('login-course-select').value;
             const misNumber = document.getElementById('student-mis-input').value.trim();
@@ -281,7 +280,6 @@
             updateAssignmentDeadlineDisplay();
         }
 
-        /* --- 2. BUG FIX: STRICT SINGLE ATTEMPT FOR QUIZZES --- */
         function updateQuizAttemptStatus() {
             const testId = document.getElementById('available-tests-select').value;
             const launchBtn = document.getElementById('launch-test-btn');
@@ -306,7 +304,6 @@
             }
         }
 
-        /* --- 3. BUG FIX: STRICT SINGLE ATTEMPT FOR ASSIGNMENTS --- */
         function updateAssignmentDeadlineDisplay() {
             const assignId = document.getElementById('available-assignments-select').value;
             const banner = document.getElementById('assignment-deadline-banner');
@@ -361,7 +358,6 @@
 
             const assignment = floatedAssignments.find(a => a.id === assignId);
 
-            // Double check single submission lock
             let submittedAssignments = JSON.parse(localStorage.getItem('portal_assignments')) || [];
             let alreadySubmitted = submittedAssignments.find(a => a.title === assignment.title && a.mis === currentAuthenticatedStudent.mis && a.course === currentAuthenticatedStudent.course);
 
@@ -437,7 +433,6 @@
             reader.readAsDataURL(file);
         }
 
-        /* --- 4. BUG FIX: CONSISTENT FULLSCREEN PROCTORING ENGINE --- */
         function triggerRobustFullscreen() {
             const elem = document.documentElement;
             if (elem.requestFullscreen) {
@@ -466,7 +461,6 @@
                 return;
             }
 
-            // Force Fullscreen launch
             triggerRobustFullscreen();
 
             isExamInProgress = true;
