@@ -90,10 +90,10 @@
                 <!-- ASSIGNMENT SUBMISSION SECTION -->
                 <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl space-y-4">
                     <div class="flex items-center space-x-3 text-indigo-400">
-                        <i class="fa-solid fa-cloud-arrow-up text-2xl"></i>
+                        <i class="fa-solid fa-paper-plane text-2xl"></i>
                         <h4 class="text-lg font-bold text-white">Floated Assignments</h4>
                     </div>
-                    <p class="text-xs text-slate-400">Select an assignment and upload your solution before the deadline.</p>
+                    <p class="text-xs text-slate-400">Select an assignment and attach your solution before the deadline.</p>
 
                     <select id="available-assignments-select" onchange="updateAssignmentDeadlineDisplay()" class="w-full border border-slate-600 rounded-lg p-2.5 bg-slate-900 text-white text-xs focus:outline-none"></select>
 
@@ -104,7 +104,7 @@
                     <input type="file" id="assignment-file-input" class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 cursor-pointer">
 
                     <button id="upload-assignment-btn" onclick="uploadAssignmentToDrive()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg text-xs transition shadow-md flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-upload"></i> Upload Solution to Drive
+                        <i class="fa-solid fa-paper-plane"></i> Submit Assignment
                     </button>
                 </div>
             </div>
@@ -120,8 +120,8 @@
 
     <!-- ENGINE SCRIPT -->
     <script>
-        // AUTOMATED GOOGLE APPS SCRIPT URL
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx_qg0VmiIa6-3DxZU4-wGacTlwiNMX7KwSnI42pc9Hu_1cpecVS7G0_JQb1y1tYyl1sA/exec";
+        // UPDATED GOOGLE APPS SCRIPT EXEC URL
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz0lpgIK-CFr3li6uiGdndTf3SfGXfwlMDIc-kGRg1fzHO7iBsUSF-WNaphbcVrOTGtUw/exec";
 
         let academicCourses = JSON.parse(localStorage.getItem('portal_courses')) || {};
         let publishedTests = JSON.parse(localStorage.getItem('portal_published_tests')) || [];
@@ -239,14 +239,14 @@
             const fileInput = document.getElementById('assignment-file-input');
             const assignId = document.getElementById('available-assignments-select').value;
 
-            if (!fileInput.files.length) return alert("Please select a file to upload.");
+            if (!fileInput.files.length) return alert("Please select a file to submit.");
             if (!assignId) return alert("No valid assignment selected.");
 
             const assignment = floatedAssignments.find(a => a.id === assignId);
             const file = fileInput.files[0];
             const uploadBtn = document.getElementById('upload-assignment-btn');
 
-            uploadBtn.innerText = "Uploading to Google Drive...";
+            uploadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting Assignment...';
             uploadBtn.disabled = true;
 
             const reader = new FileReader();
@@ -269,11 +269,11 @@
                 })
                 .then(res => res.json())
                 .then(data => {
-                    uploadBtn.innerText = "Upload Solution to Drive";
+                    uploadBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit Assignment';
                     uploadBtn.disabled = false;
 
                     if (data.status === 'success') {
-                        alert("Assignment successfully uploaded to Google Drive!");
+                        alert("Assignment submitted successfully!");
                         
                         let submittedAssignments = JSON.parse(localStorage.getItem('portal_assignments')) || [];
                         submittedAssignments.push({
@@ -288,11 +288,11 @@
 
                         fileInput.value = '';
                     } else {
-                        alert("Google Drive Upload Error: " + (data.message || "Unknown error"));
+                        alert("Submission Error: " + (data.message || "Unknown error"));
                     }
                 })
                 .catch(err => {
-                    uploadBtn.innerText = "Upload Solution to Drive";
+                    uploadBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit Assignment';
                     uploadBtn.disabled = false;
                     alert("Submission Error: " + err.message);
                 });
