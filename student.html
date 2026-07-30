@@ -147,6 +147,7 @@
     <!-- ENGINE SCRIPT -->
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzqqRrchDX_FJRr6vQQnDMJQQwjzXhZJq1Za-SIr_XSBirdmL6CZo9D-6c_B83LMJbFdA/exec";
+        const ADMIN_MASTER_PIN = "admin123"; // CHANGE YOUR MASTER ADMIN PIN HERE
 
         let academicCourses = {};
         let publishedTests = [];
@@ -156,8 +157,15 @@
         let quizTimerInterval = null;
         let isExamInProgress = false;
 
+        /* --- PROTECTED FACULTY / ADMIN PORTAL REDIRECT --- */
         function goToAdminPortal() {
-            window.location.href = "portal.html";
+            const enteredPin = prompt("🔒 RESTRICTED AREA: Enter Faculty / Admin Master Passcode:");
+            if (enteredPin === ADMIN_MASTER_PIN) {
+                sessionStorage.setItem("admin_authenticated", "true");
+                window.location.href = "portal.html";
+            } else if (enteredPin !== null) {
+                alert("ACCESS DENIED: Invalid Faculty Passcode!");
+            }
         }
 
         function fetchGlobalDataFromCloud() {
@@ -208,8 +216,6 @@
             if (!passcode) return alert("Please enter your password.");
 
             const courseRoster = academicCourses[selectedCourse] || [];
-            
-            // Strictly check if student MIS exists in the registered roster
             const studentMatch = courseRoster.find(s => String(s.roll_no).trim() === misNumber);
 
             if (!studentMatch) {
@@ -264,13 +270,11 @@
         function populateStudentAssessments() {
             const course = currentAuthenticatedStudent.course;
             
-            // Populate Quizzes
             const courseTests = publishedTests.filter(t => t.course === course);
             document.getElementById('available-tests-select').innerHTML = courseTests.length
                 ? courseTests.map(t => `<option value="${t.id}">${t.title} (${t.duration} Mins)</option>`).join('')
                 : '<option value="">No active quizzes for this course</option>';
 
-            // Populate Assignments
             const courseAssignments = floatedAssignments.filter(a => a.course === course);
             document.getElementById('available-assignments-select').innerHTML = courseAssignments.length
                 ? courseAssignments.map(a => `<option value="${a.id}">${a.title}</option>`).join('')
