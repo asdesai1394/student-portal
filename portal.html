@@ -4,6 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Academic, Research & Assessment Master Portal</title>
+   <script>
+    // Master Password Security Gate
+    const ADMIN_MASTER_PIN = "admin123"; // CHANGE YOUR MASTER ADMIN PIN HERE
+
+    if (sessionStorage.getItem("admin_authenticated") !== "true") {
+        const pin = prompt("🔒 RESTRICTED FACULTY PORTAL: Enter Master Admin Passcode:");
+        if (pin === ADMIN_MASTER_PIN) {
+            sessionStorage.setItem("admin_authenticated", "true");
+        } else {
+            alert("ACCESS DENIED: Unauthorized access blocked.");
+            window.location.href = "student.html";
+        }
+    }
+</script>
+    
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
