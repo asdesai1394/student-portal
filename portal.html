@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SheetJS for Excel Parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- KaTeX for Math Equations -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
@@ -31,7 +33,7 @@
         <!-- NAVIGATION TABS -->
         <div class="flex flex-wrap gap-3 border-b border-slate-800 pb-4">
             <button onclick="switchTab('tab-courses')" id="btn-tab-courses" class="tab-btn bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2">
-                <i class="fa-solid fa-book-bookmark"></i> Course Registry
+                <i class="fa-solid fa-book-bookmark"></i> Course & Roster Registry
             </button>
             <button onclick="switchTab('tab-quizzes')" id="btn-tab-quizzes" class="tab-btn bg-slate-800 text-slate-300 hover:bg-slate-700 px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2">
                 <i class="fa-solid fa-file-pen"></i> Quiz & Exam Creator
@@ -44,28 +46,43 @@
             </button>
         </div>
 
-        <!-- 1. COURSE REGISTRATION SECTION -->
+        <!-- 1. COURSE & EXCEL ROSTER REGISTRATION -->
         <section id="tab-courses" class="tab-content space-y-6">
-            <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl space-y-4">
+            <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl space-y-6">
                 <div class="flex items-center space-x-3 text-indigo-400">
-                    <i class="fa-solid fa-folder-plus text-2xl"></i>
-                    <h2 class="text-xl font-bold text-white">Add New Course & Student Roster</h2>
-                </div>
-                <p class="text-xs text-slate-400">Create new course offerings for any semester. Student MIS roster can be pasted as JSON or plain lines.</p>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                    <i class="fa-solid fa-file-excel text-2xl text-emerald-400"></i>
                     <div>
-                        <label class="block font-semibold text-slate-300 mb-1">Course Code / Name</label>
+                        <h2 class="text-xl font-bold text-white">Register Course & Upload Roster</h2>
+                        <p class="text-xs text-slate-400">Upload an Excel sheet (.xlsx, .xls, .csv) containing student MIS numbers and names.</p>
+                    </div>
+                </div>
+
+                <div class="space-y-4 text-xs">
+                    <div>
+                        <label class="block font-semibold text-slate-300 mb-1">Course Code / Title</label>
                         <input type="text" id="course-title-input" placeholder="e.g., UG 6th Sem - CFD 2026" class="w-full border border-slate-600 rounded-lg p-3 bg-slate-900 text-white font-semibold focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                     </div>
+
+                    <!-- EXCEL UPLOAD BOX -->
+                    <div class="border-2 border-dashed border-slate-600 bg-slate-900/50 rounded-xl p-5 text-center space-y-2">
+                        <i class="fa-solid fa-cloud-arrow-up text-3xl text-emerald-400"></i>
+                        <p class="font-semibold text-slate-300">Select Excel File (.xlsx, .csv)</p>
+                        <p class="text-[11px] text-slate-500">First column should contain <strong>MIS/Roll No</strong>, second column <strong>Student Name</strong>.</p>
+                        <input type="file" id="roster-excel-input" accept=".xlsx, .xls, .csv" class="block w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 cursor-pointer mx-auto max-w-sm pt-2">
+                    </div>
+
+                    <div class="text-center">
+                        <span class="text-slate-500 font-bold uppercase text-[10px]">-- OR Paste Roster Manually --</span>
+                    </div>
+
                     <div>
-                        <label class="block font-semibold text-slate-300 mb-1">Student MIS List (Format: MIS, Student Name)</label>
-                        <textarea id="course-roster-input" rows="4" placeholder="112203001, John Doe&#10;112203002, Jane Smith" class="w-full border border-slate-600 rounded-lg p-3 bg-slate-900 text-white font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+                        <label class="block font-semibold text-slate-300 mb-1">Manual List (Format: MIS, Name)</label>
+                        <textarea id="course-roster-input" rows="3" placeholder="112203001, Student Name&#10;112203002, Another Student" class="w-full border border-slate-600 rounded-lg p-3 bg-slate-900 text-white font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
                     </div>
                 </div>
 
-                <button onclick="saveCourseRegistry()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 rounded-lg text-xs transition shadow-md flex items-center gap-2">
-                    <i class="fa-solid fa-save"></i> Register Course
+                <button onclick="saveCourseRegistry()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl text-xs transition shadow-md flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-save"></i> Save & Register Course Roster
                 </button>
             </div>
 
@@ -272,31 +289,60 @@
             renderAllPortalData();
         }
 
-        /* --- 1. COURSE REGISTRY LOGIC --- */
+        /* --- 1. COURSE REGISTRY & EXCEL ROSTER PARSER --- */
         function saveCourseRegistry() {
             const courseTitle = document.getElementById('course-title-input').value.trim();
-            const rawRoster = document.getElementById('course-roster-input').value.trim();
+            const excelFileInput = document.getElementById('roster-excel-input');
+            const rawRosterText = document.getElementById('course-roster-input').value.trim();
 
             if (!courseTitle) return alert("Please enter a valid Course Title.");
-            if (!rawRoster) return alert("Please enter student MIS details.");
 
-            let studentList = [];
-            const lines = rawRoster.split('\n');
-            lines.forEach(line => {
-                const parts = line.split(',');
-                if (parts.length >= 2) {
-                    studentList.push({
-                        roll_no: parts[0].trim(),
-                        student_name: parts[1].trim()
-                    });
-                } else if (parts[0].trim()) {
-                    studentList.push({
-                        roll_no: parts[0].trim(),
-                        student_name: "Student (" + parts[0].trim() + ")"
-                    });
-                }
-            });
+            if (excelFileInput.files.length > 0) {
+                const file = excelFileInput.files[0];
+                const reader = new FileReader();
 
+                reader.onload = function(e) {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+
+                    let studentList = [];
+                    jsonData.forEach(row => {
+                        if (row && row.length >= 1 && row[0]) {
+                            const rollNo = String(row[0]).trim();
+                            const name = row[1] ? String(row[1]).trim() : `Student (${rollNo})`;
+                            if (rollNo && rollNo.toLowerCase() !== 'mis' && rollNo.toLowerCase() !== 'roll no') {
+                                studentList.push({ roll_no: rollNo, student_name: name });
+                            }
+                        }
+                    });
+
+                    if (!studentList.length) return alert("No valid student records found in the uploaded Excel file.");
+
+                    storeCourseData(courseTitle, studentList);
+                };
+
+                reader.readAsArrayBuffer(file);
+            } else if (rawRosterText) {
+                let studentList = [];
+                const lines = rawRosterText.split('\n');
+                lines.forEach(line => {
+                    const parts = line.split(',');
+                    if (parts.length >= 2) {
+                        studentList.push({ roll_no: parts[0].trim(), student_name: parts[1].trim() });
+                    } else if (parts[0].trim()) {
+                        studentList.push({ roll_no: parts[0].trim(), student_name: "Student (" + parts[0].trim() + ")" });
+                    }
+                });
+
+                storeCourseData(courseTitle, studentList);
+            } else {
+                alert("Please upload an Excel sheet OR paste student MIS data.");
+            }
+        }
+
+        function storeCourseData(courseTitle, studentList) {
             let courses = JSON.parse(localStorage.getItem('portal_courses')) || {};
             courses[courseTitle] = studentList;
             localStorage.setItem('portal_courses', JSON.stringify(courses));
@@ -304,6 +350,7 @@
             alert(`Course '${courseTitle}' successfully registered with ${studentList.length} students!`);
             document.getElementById('course-title-input').value = '';
             document.getElementById('course-roster-input').value = '';
+            document.getElementById('roster-excel-input').value = '';
 
             renderAllPortalData();
         }
@@ -329,7 +376,6 @@
             if (!text) return alert("Question text cannot be empty.");
             if (!o0 || !o1 || !o2 || !o3) return alert("Please fill in all 4 options.");
 
-            // EXPLICIT STANDARDIZED 'text' PROPERTY
             draftQuizQuestions.push({
                 text: text,
                 options: [o0, o1, o2, o3],
