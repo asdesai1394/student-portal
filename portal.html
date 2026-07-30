@@ -4,22 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Academic, Research & Assessment Master Portal</title>
-   <script>
-    // Master Password Security Gate
-    const ADMIN_MASTER_PIN = "admin123"; // CHANGE YOUR MASTER ADMIN PIN HERE
 
-    if (sessionStorage.getItem("admin_authenticated") !== "true") {
-        const pin = prompt("🔒 RESTRICTED FACULTY PORTAL: Enter Master Admin Passcode:");
-        if (pin === ADMIN_MASTER_PIN) {
-            sessionStorage.setItem("admin_authenticated", "true");
-        } else {
-            alert("ACCESS DENIED: Unauthorized access blocked.");
-            window.location.href = "student.html";
+    <!-- 🔒 MASTER ADMIN SECURITY GATE -->
+    <script>
+        const ADMIN_MASTER_PIN = "admin123"; // CHANGE YOUR MASTER ADMIN PIN HERE
+
+        if (sessionStorage.getItem("admin_authenticated") !== "true") {
+            const pin = prompt("🔒 RESTRICTED FACULTY PORTAL: Enter Master Admin Passcode:");
+            if (pin === ADMIN_MASTER_PIN) {
+                sessionStorage.setItem("admin_authenticated", "true");
+            } else {
+                alert("ACCESS DENIED: Unauthorized access blocked.");
+                window.location.href = "student.html";
+            }
         }
-    }
-</script>
-    
-    
+    </script>
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -91,7 +91,7 @@
 
             <main class="p-8 max-w-7xl w-full mx-auto flex-1">
                 
-                <!-- DASHBOARD -->
+                <!-- 1. DASHBOARD OVERVIEW -->
                 <section id="view-dashboard" class="tab-view space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                         <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex items-center space-x-4">
@@ -125,10 +125,9 @@
                     </div>
                 </section>
 
-                <!-- COURSES & ROSTER -->
+                <!-- 2. COURSES & ROSTERS -->
                 <section id="view-courses" class="tab-view hidden space-y-6">
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <!-- LEFT PANEL: REGISTER / APPEND COURSE -->
                         <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4 h-fit">
                             <h3 class="text-lg font-bold text-gray-900">Add / Append Course Roster</h3>
                             <div>
@@ -159,7 +158,6 @@
                             </button>
                         </div>
 
-                        <!-- RIGHT PANEL: CLASS REGISTRY TABLE & PASSWORD MANAGEMENT -->
                         <div class="lg:col-span-2 bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col space-y-4">
                             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                                 <h3 class="text-lg font-bold text-gray-900">Registered Department Class Registries</h3>
@@ -171,7 +169,6 @@
                                 </div>
                             </div>
 
-                            <!-- INLINE ADD SINGLE STUDENT FORM -->
                             <div class="bg-slate-50 p-3 rounded-lg border border-gray-200 flex flex-col sm:flex-row items-center gap-2 text-xs">
                                 <span class="font-bold text-slate-700 whitespace-nowrap"><i class="fa-solid fa-user-plus text-indigo-600 mr-1"></i>Add Single Student:</span>
                                 <input type="text" id="add-single-mis" placeholder="MIS / Roll No" class="border border-gray-300 rounded p-1.5 font-mono w-full sm:w-36 focus:outline-none bg-white">
@@ -181,7 +178,6 @@
                                 </button>
                             </div>
 
-                            <!-- CLASS ROSTER TABLE WITH PASSWORD RESET BUTTONS -->
                             <div class="overflow-x-auto rounded-lg border border-gray-200 flex-1 max-h-[350px]">
                                 <table class="w-full text-left text-xs">
                                     <thead class="bg-gray-50 text-gray-600 font-semibold border-b sticky top-0">
@@ -199,7 +195,7 @@
                     </div>
                 </section>
 
-                <!-- ASSESSMENT CENTER -->
+                <!-- 3. ASSESSMENT CENTER -->
                 <section id="view-assessment-center" class="tab-view hidden space-y-6">
                     <div class="bg-white p-2 rounded-xl border border-gray-200 shadow-sm flex flex-wrap gap-2 text-xs font-bold">
                         <button id="subtab-btn-quiz" onclick="switchAssessmentSubTab('quiz')" class="flex-1 py-2 px-4 rounded-lg bg-indigo-600 text-white shadow-xs transition flex items-center justify-center gap-2">
@@ -213,7 +209,7 @@
                         </button>
                     </div>
 
-                    <!-- QUIZ BUILDER -->
+                    <!-- SUBTAB 1: QUIZ BUILDER -->
                     <div id="subtab-quiz-box" class="subtab-content bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-6">
                         <div class="border-b pb-3">
                             <h3 class="text-lg font-bold text-gray-900">1. Build Online Assessment / Quiz</h3>
@@ -316,7 +312,7 @@
                         </div>
                     </div>
 
-                    <!-- FLOAT ASSIGNMENT -->
+                    <!-- SUBTAB 2: FLOAT ASSIGNMENT -->
                     <div id="subtab-assignment-box" class="subtab-content hidden bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-6">
                         <div class="border-b pb-3">
                             <h3 class="text-lg font-bold text-gray-900">2. Float Assignment with Cut-off Deadline</h3>
@@ -360,7 +356,7 @@
                         </div>
                     </div>
 
-                    <!-- RESULTS & GRADING -->
+                    <!-- SUBTAB 3: RESULTS & GRADING -->
                     <div id="subtab-results-box" class="subtab-content hidden bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-6">
                         <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-3 gap-4">
                             <div>
@@ -430,6 +426,238 @@
 
                 </section>
 
+                <!-- 4. ATTENDANCE TRACKER -->
+                <section id="view-attendance" class="tab-view hidden space-y-6">
+                    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                        <h3 class="text-lg font-bold mb-4 text-gray-900">Mark Live Session Attendance</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Select Active Class Registry</label>
+                                <select id="attendance-course-select" onchange="populateAttendanceRoster()" class="w-full border border-gray-300 rounded-lg p-2.5 bg-white focus:outline-none"></select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Session Date</label>
+                                <input type="date" id="attendance-date" class="w-full border border-gray-300 rounded-lg p-2.5 focus:outline-none">
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto rounded-lg border border-gray-200 mb-4 max-h-[250px]">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-gray-50 border-b border-gray-200 text-gray-600 font-semibold sticky top-0">
+                                    <tr>
+                                        <th class="px-6 py-2.5">Roll No</th>
+                                        <th class="px-6 py-2.5">Student Name</th>
+                                        <th class="px-6 py-2.5 text-center">Status Flag</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="live-attendance-body" class="divide-y divide-gray-200 text-gray-700"></tbody>
+                            </table>
+                        </div>
+                        <button onclick="submitAttendance()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-5 py-2.5 rounded-lg shadow-sm transition">
+                            Save Data Sheet
+                        </button>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-3 gap-4">
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-900">Attendance Report Center</h3>
+                                <p class="text-xs text-slate-500">Filter data streams and download reporting archives.</p>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto rounded-lg border border-gray-200">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-gray-50 border-b border-gray-200 text-gray-600 font-semibold">
+                                    <tr>
+                                        <th class="px-6 py-2.5">Roll No</th>
+                                        <th class="px-6 py-2.5">Student Name</th>
+                                        <th class="px-6 py-2.5">Sessions Tracked</th>
+                                        <th class="px-6 py-2.5">Attended</th>
+                                        <th class="px-6 py-2.5">Percentage</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="report-table-body" class="divide-y divide-gray-200 text-gray-700"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. EXAM CONTROLLER -->
+                <section id="view-exam-control" class="tab-view hidden space-y-6">
+                    <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+                        <div class="xl:col-span-1 bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 h-fit text-xs">
+                            <div class="border-b border-gray-100 pb-2">
+                                <h3 class="text-sm font-bold text-slate-900 flex items-center space-x-2">
+                                    <i class="fa-solid fa-scale-balanced text-amber-500"></i>
+                                    <span>Hierarchical Invigilation Planner</span>
+                                </h3>
+                            </div>
+                            
+                            <div>
+                                <label class="block font-semibold text-gray-700 mb-1">Add Faculty to Distribution Pool</label>
+                                <div class="space-y-2 bg-slate-50 p-2.5 rounded-lg border border-gray-200">
+                                    <input type="text" id="fac-name-input" placeholder="Name (e.g., Dr. A.K. Sharma)" class="w-full border border-gray-300 rounded p-1.5 focus:outline-none bg-white">
+                                    <select id="fac-rank-input" class="w-full border border-gray-300 rounded p-1.5 bg-white focus:outline-none">
+                                        <option value="Professor">Professor (Max 1 Duty)</option>
+                                        <option value="Associate">Associate Professor (Max 3 Duties)</option>
+                                        <option value="Assistant">Assistant Professor (Max 5 Duties)</option>
+                                        <option value="Other" selected>Adjunct/Other Tier (Max 7 Duties)</option>
+                                    </select>
+                                    <button onclick="addFacultyToPool()" class="w-full bg-slate-800 text-white rounded p-1.5 font-medium hover:bg-slate-700">Add Faculty Member</button>
+                                </div>
+                            </div>
+
+                            <div class="max-h-36 overflow-y-auto border border-gray-200 rounded p-1 bg-white">
+                                <p class="font-bold text-gray-700 px-1 mb-1 border-b pb-0.5">Current Pool Trackers:</p>
+                                <div id="faculty-badges-list" class="space-y-1"></div>
+                            </div>
+
+                            <div>
+                                <label class="block font-semibold text-gray-700 mb-1">Venues List (Comma Separated)</label>
+                                <input type="text" id="exam-venues-list" value="MEDH-1, MEDH-2, NC-19/ME-003, NC-18/ME-002" class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none font-mono">
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block font-semibold text-gray-700 mb-1">Exam Date</label>
+                                    <input type="date" id="exam-block-date" class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block font-semibold text-gray-700 mb-1">Day Tag</label>
+                                    <select id="exam-block-daytag" class="w-full border border-gray-300 rounded-lg p-2 bg-white focus:outline-none">
+                                        <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
+                                        <option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="border-t border-gray-100 pt-3 space-y-2">
+                                <p class="font-bold text-gray-800">Stage Daily Exam Rows</p>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <input type="text" id="slot-target-class" placeholder="e.g., SY MECH" class="w-full border border-gray-300 rounded p-1.5 focus:outline-none">
+                                    <input type="text" id="slot-time-window" placeholder="11 am to 12.30 PM" class="w-full border border-gray-300 rounded p-1.5 focus:outline-none">
+                                </div>
+                                <input type="text" id="slot-course-label" placeholder="e.g., CFD 2026" class="w-full border border-gray-300 rounded p-1.5 focus:outline-none">
+                                <button onclick="addExamSlotRecord()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-1.5 rounded transition">
+                                    + Stage Roster Row
+                                </button>
+                            </div>
+
+                            <button onclick="compileInvigilationChart()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-lg text-xs transition shadow-sm flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                <span>Compute Hierarchical Grid</span>
+                            </button>
+                        </div>
+
+                        <div class="xl:col-span-3 space-y-4">
+                            <div class="bg-white p-3 rounded-xl border border-gray-200 shadow-sm">
+                                <div class="flex justify-between items-center mb-1">
+                                    <h4 class="text-xs font-bold uppercase text-slate-500">Staged Exam Tracks</h4>
+                                    <button onclick="stagedSlots=[]; renderStagedSlotsUI();" class="text-rose-600 text-[10px] hover:underline">Clear</button>
+                                </div>
+                                <div id="staged-rows-container" class="flex flex-wrap gap-1.5 text-xs">
+                                    <p class="text-gray-400 italic">No slots staged.</p>
+                                </div>
+                            </div>
+
+                            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
+                                <div class="flex justify-between items-center border-b pb-3">
+                                    <div>
+                                        <h3 class="text-lg font-bold text-gray-900">Master Invigilation Grid</h3>
+                                        <p class="text-xs text-slate-500">Direct inline editing enabled.</p>
+                                    </div>
+                                    <div class="flex space-x-2">
+                                        <button onclick="saveManualEdits()" class="bg-indigo-600 text-white text-xs font-bold px-4 py-2 rounded-lg shadow">Save Changes</button>
+                                        <button onclick="resetExamSchedules()" class="text-xs border border-rose-200 text-rose-600 px-3 py-2 rounded-lg hover:bg-rose-50">Reset</button>
+                                    </div>
+                                </div>
+                                <div id="master-grid-output-anchor" class="space-y-8"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 6. LAB SCHEDULER -->
+                <section id="view-lab-scheduler" class="tab-view hidden space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4 h-fit text-xs">
+                            <h3 class="text-base font-bold text-gray-900">Lab Capacity Batch Splitter</h3>
+                            <div>
+                                <label class="block font-semibold text-gray-700 mb-1">Select Base Course</label>
+                                <select id="lab-course-select" class="w-full border border-gray-300 rounded-lg p-2.5 bg-white text-sm focus:outline-none"></select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block font-semibold text-gray-700 mb-1">Terminal Capacity</label>
+                                    <input type="number" id="lab-terminal-capacity" value="20" min="1" class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block font-semibold text-gray-700 mb-1">Start Time</label>
+                                    <input type="text" id="lab-start-time" value="09:30 AM" class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:outline-none">
+                                </div>
+                            </div>
+                            <button onclick="computeLabSplits()" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-2.5 rounded-lg text-sm transition shadow-sm">
+                                Partition Class into Batches
+                            </button>
+                        </div>
+                        
+                        <div class="lg:col-span-2 bg-white p-6 rounded-xl border border-gray-200 shadow-sm min-h-[400px]">
+                            <h3 class="text-lg font-bold text-gray-900 mb-4">Calculated Lab Batches</h3>
+                            <div id="lab-split-output-anchor" class="space-y-6 text-xs">
+                                <p class="text-gray-400 italic text-center py-12">Select course and capacity parameters to compute batches.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 7. RESEARCH PIPELINE -->
+                <section id="view-research" class="tab-view hidden space-y-6">
+                    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                        <h3 class="text-lg font-bold mb-4 text-gray-900">Add New Grant Proposal / Manuscript Track</h3>
+                        <form id="research-form" onsubmit="addResearchProject(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Project Title</label>
+                                <input type="text" id="res-title" required placeholder="e.g., ANRF MATRICS Thin Film Proposal" class="w-full border border-gray-300 rounded-lg p-2.5 focus:outline-none text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Milestone Status</label>
+                                <select id="res-status" class="w-full border border-gray-300 rounded-lg p-2.5 bg-white focus:outline-none text-sm">
+                                    <option>Drafting</option>
+                                    <option>Internal Review</option>
+                                    <option>Submitted</option>
+                                    <option>Revisions Required</option>
+                                    <option>Approved</option>
+                                </select>
+                            </div>
+                            <div class="flex space-x-2">
+                                <div class="flex-1">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Target Deadline</label>
+                                    <input type="date" id="res-date" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:outline-none text-sm">
+                                </div>
+                                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2.5 rounded-lg text-sm transition h-11 self-end shadow-sm">
+                                    Track Item
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="bg-white border border-gray-200 rounded-xl shadow-sm">
+                        <div class="px-6 py-4 border-b border-gray-100"><h3 class="font-bold text-gray-900">Comprehensive Research Pipeline</h3></div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-gray-50 text-gray-600 font-medium uppercase text-xs border-b border-gray-100">
+                                    <tr>
+                                        <th class="px-6 py-3">Project / Grant Track</th>
+                                        <th class="px-6 py-3">Status Matrix</th>
+                                        <th class="px-6 py-3">Target Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="research-table-body" class="divide-y divide-gray-100 text-gray-700"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
             </main>
         </div>
     </div>
@@ -441,6 +669,13 @@
         let academicCourses = JSON.parse(localStorage.getItem('portal_courses')) || {};
         let publishedTests = JSON.parse(localStorage.getItem('portal_published_tests')) || [];
         let floatedAssignments = JSON.parse(localStorage.getItem('portal_floated_assignments')) || [];
+        let attendanceHistory = JSON.parse(localStorage.getItem('portal_attendance')) || [];
+        let researchProjects = JSON.parse(localStorage.getItem('portal_research')) || [];
+        let computedExamSchedule = JSON.parse(localStorage.getItem('portal_exams')) || [];
+        let facultyRanksPool = JSON.parse(localStorage.getItem('portal_faculty_ranks')) || [];
+
+        const rankDutyCaps = { "Professor": 1, "Associate": 3, "Assistant": 5, "Other": 7 };
+        let stagedSlots = [];
         let draftQuestions = [];
         let activeEnrollmentMode = 'excel';
         let temporaryParsedExcelRoster = [];
@@ -493,41 +728,7 @@
                 });
         }
 
-        function switchAssessmentSubTab(subTab) {
-            document.querySelectorAll('.subtab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(`subtab-${subTab}-box`).classList.remove('hidden');
-
-            const quizBtn = document.getElementById('subtab-btn-quiz');
-            const assignBtn = document.getElementById('subtab-btn-assignment');
-            const resultsBtn = document.getElementById('subtab-btn-results');
-
-            const inactiveClass = "flex-1 py-2 px-4 rounded-lg text-gray-600 hover:bg-gray-100 transition flex items-center justify-center gap-2";
-            const activeClass = "flex-1 py-2 px-4 rounded-lg bg-indigo-600 text-white shadow-xs transition flex items-center justify-center gap-2";
-
-            quizBtn.className = subTab === 'quiz' ? activeClass : inactiveClass;
-            assignBtn.className = subTab === 'assignment' ? activeClass : inactiveClass;
-            resultsBtn.className = subTab === 'results' ? activeClass : inactiveClass;
-
-            if (subTab === 'assignment') renderFloatedAssignments();
-            if (subTab === 'results') {
-                populateCourseFilterDropdown();
-                renderEvaluatedTables();
-            }
-        }
-
-        function populateCourseFilterDropdown() {
-            const keys = Object.keys(academicCourses);
-            const select = document.getElementById('filter-eval-course');
-            const currentVal = select.value;
-
-            select.innerHTML = `<option value="ALL">All Courses</option>` + 
-                keys.map(k => `<option value="${k}">${k}</option>`).join('');
-
-            if (currentVal && (keys.includes(currentVal) || currentVal === 'ALL')) {
-                select.value = currentVal;
-            }
-        }
-
+        /* --- 1. COURSES & ROSTERS --- */
         function switchEnrollmentMode(mode) {
             activeEnrollmentMode = mode;
             document.getElementById('mode-excel-btn').className = mode === 'excel' ? "py-1.5 text-xs font-bold rounded bg-white text-indigo-600 shadow-xs" : "py-1.5 text-xs font-bold rounded text-gray-600";
@@ -599,9 +800,9 @@
             document.getElementById('test-course-selector').innerHTML = options;
             document.getElementById('assign-course-selector').innerHTML = options;
             document.getElementById('attendance-course-select').innerHTML = options;
+            document.getElementById('lab-course-select').innerHTML = options;
         }
 
-        /* --- 🔒 RENDER ROSTER WITH PASSWORD RESET CAPABILITY --- */
         function renderRosterView() {
             const key = document.getElementById('course-roster-selector').value;
             const container = document.getElementById('roster-display-body'); if (!key) return;
@@ -636,7 +837,6 @@
             }).join('') : '<tr><td colspan="4" class="p-4 text-center text-slate-400 italic">No students registered in this course.</td></tr>';
         }
 
-        /* --- 🔑 FACULTY RESET STUDENT PASSWORD ACTION --- */
         function resetStudentPassword(courseKey, mis, studentName) {
             if (confirm(`Reset passcode for ${studentName} (${mis})?\n\nThis will clear their password so they can create a new password on their next login.`)) {
                 const passKey = `pass_${courseKey}_${mis}`;
@@ -656,7 +856,6 @@
             if (!name) return alert("Enter student Name.");
 
             let roster = academicCourses[courseKey] || [];
-            
             if (roster.some(s => String(s.roll_no).trim() === mis)) {
                 return alert(`Student with MIS '${mis}' is already enrolled in ${courseKey}.`);
             }
@@ -699,6 +898,42 @@
                 initializeDropdowns();
                 renderRosterView();
                 updateDashboardMetrics();
+            }
+        }
+
+        /* --- 2. ASSESSMENT & EVALUATION CENTER --- */
+        function switchAssessmentSubTab(subTab) {
+            document.querySelectorAll('.subtab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`subtab-${subTab}-box`).classList.remove('hidden');
+
+            const quizBtn = document.getElementById('subtab-btn-quiz');
+            const assignBtn = document.getElementById('subtab-btn-assignment');
+            const resultsBtn = document.getElementById('subtab-btn-results');
+
+            const inactiveClass = "flex-1 py-2 px-4 rounded-lg text-gray-600 hover:bg-gray-100 transition flex items-center justify-center gap-2";
+            const activeClass = "flex-1 py-2 px-4 rounded-lg bg-indigo-600 text-white shadow-xs transition flex items-center justify-center gap-2";
+
+            quizBtn.className = subTab === 'quiz' ? activeClass : inactiveClass;
+            assignBtn.className = subTab === 'assignment' ? activeClass : inactiveClass;
+            resultsBtn.className = subTab === 'results' ? activeClass : inactiveClass;
+
+            if (subTab === 'assignment') renderFloatedAssignments();
+            if (subTab === 'results') {
+                populateCourseFilterDropdown();
+                renderEvaluatedTables();
+            }
+        }
+
+        function populateCourseFilterDropdown() {
+            const keys = Object.keys(academicCourses);
+            const select = document.getElementById('filter-eval-course');
+            const currentVal = select.value;
+
+            select.innerHTML = `<option value="ALL">All Courses</option>` + 
+                keys.map(k => `<option value="${k}">${k}</option>`).join('');
+
+            if (currentVal && (keys.includes(currentVal) || currentVal === 'ALL')) {
+                select.value = currentVal;
             }
         }
 
@@ -936,21 +1171,297 @@
             document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
 
+        /* --- 3. ATTENDANCE TRACKER --- */
+        function populateAttendanceRoster() {
+            const course = document.getElementById('attendance-course-select').value;
+            const container = document.getElementById('live-attendance-body'); if (!course) return;
+            const currentRoster = academicCourses[course] || [];
+
+            container.innerHTML = currentRoster.length ? currentRoster.map(s => `
+                <tr>
+                    <td class="px-6 py-2 font-mono text-xs roll-field font-bold text-slate-900">${s.roll_no}</td>
+                    <td class="px-6 py-2 name-field text-slate-700 font-medium">${s.student_name}</td>
+                    <td class="px-6 py-2 text-center"><input type="checkbox" checked class="present-checkbox w-4 h-4 text-indigo-600 rounded"></td>
+                </tr>
+            `).join('') : '<tr><td colspan="3" class="p-4 text-center text-slate-400 italic">No registered roster for this course.</td></tr>';
+
+            loadAttendanceReports();
+        }
+
+        function submitAttendance() {
+            const rows = document.querySelectorAll("#live-attendance-body tr");
+            const date = document.getElementById("attendance-date").value;
+            const course = document.getElementById("attendance-course-select").value;
+            if (!date) return alert("Select session date.");
+
+            rows.forEach(row => {
+                const rollEl = row.querySelector(".roll-field");
+                const nameEl = row.querySelector(".name-field");
+                const checkEl = row.querySelector(".present-checkbox");
+
+                if (rollEl && nameEl && checkEl) {
+                    attendanceHistory.push({
+                        roll_no: rollEl.innerText,
+                        student_name: nameEl.innerText,
+                        date: date,
+                        present: checkEl.checked,
+                        course: course
+                    });
+                }
+            });
+
+            localStorage.setItem('portal_attendance', JSON.stringify(attendanceHistory));
+            alert("Session attendance saved!");
+            loadAttendanceReports();
+        }
+
+        function loadAttendanceReports() {
+            const container = document.getElementById('report-table-body');
+            const course = document.getElementById("attendance-course-select").value; if (!course) return;
+            const currentRoster = academicCourses[course] || [];
+
+            container.innerHTML = currentRoster.length ? currentRoster.map(s => {
+                const studentHistory = attendanceHistory.filter(h => h.course === course && h.roll_no === s.roll_no);
+                let conducted = studentHistory.length;
+                let attended = studentHistory.filter(h => h.present).length;
+                const pct = conducted > 0 ? ((attended / conducted) * 100).toFixed(1) : "0.0";
+
+                return `
+                    <tr>
+                        <td class="px-6 py-2 font-mono text-xs font-bold text-slate-900">${s.roll_no}</td>
+                        <td class="px-6 py-2 text-slate-700 font-medium">${s.student_name}</td>
+                        <td class="px-6 py-2 font-mono text-slate-600">${conducted}</td>
+                        <td class="px-6 py-2 font-mono text-slate-600">${attended}</td>
+                        <td class="px-6 py-2 font-bold font-mono ${pct >= 75 ? 'text-emerald-600' : 'text-rose-600'}">${pct}%</td>
+                    </tr>
+                `;
+            }).join('') : '<tr><td colspan="5" class="p-4 text-center text-slate-400 italic">No attendance data tracked yet.</td></tr>';
+        }
+
+        /* --- 4. EXAM CONTROLLER --- */
+        function renderFacultyBadges() {
+            const container = document.getElementById('faculty-badges-list');
+            container.innerHTML = facultyRanksPool.length ? facultyRanksPool.map((f, i) => `
+                <div class="flex justify-between items-center text-[10px] bg-slate-100 p-1 rounded px-2">
+                    <span class="font-medium text-slate-700"><strong>${f.name}</strong> (${f.rank})</span>
+                    <i onclick="facultyRanksPool.splice(${i},1); renderFacultyBadges(); localStorage.setItem('portal_faculty_ranks',JSON.stringify(facultyRanksPool));" class="fa-solid fa-trash text-red-400 cursor-pointer"></i>
+                </div>
+            `).join('') : '<p class="text-slate-400 italic text-[10px] p-1">No faculty added.</p>';
+        }
+
+        function addFacultyToPool() {
+            const name = document.getElementById('fac-name-input').value.trim();
+            const rank = document.getElementById('fac-rank-input').value;
+            if (!name) return alert("Enter faculty member name.");
+
+            facultyRanksPool.push({ name, rank });
+            document.getElementById('fac-name-input').value = '';
+            localStorage.setItem('portal_faculty_ranks', JSON.stringify(facultyRanksPool));
+            renderFacultyBadges();
+        }
+
+        function addExamSlotRecord() {
+            const tc = document.getElementById('slot-target-class').value.trim();
+            const tw = document.getElementById('slot-time-window').value.trim();
+            const cl = document.getElementById('slot-course-label').value.trim();
+            if (!tc || !tw || !cl) return alert("Fill all slot details.");
+
+            stagedSlots.push({ targetClass: tc, timeWindow: tw, courseLabel: cl });
+            document.getElementById('slot-target-class').value = '';
+            document.getElementById('slot-time-window').value = '';
+            document.getElementById('slot-course-label').value = '';
+            renderStagedSlotsUI();
+        }
+
+        function renderStagedSlotsUI() {
+            const c = document.getElementById('staged-rows-container');
+            if (!stagedSlots.length) { c.innerHTML = '<p class="text-gray-400 italic text-[11px]">No slots staged.</p>'; return; }
+            c.innerHTML = stagedSlots.map((s, i) => `
+                <span class="bg-indigo-50 border border-indigo-200 p-1 px-2 rounded flex items-center space-x-1">
+                    <span>${s.targetClass} - ${s.courseLabel}</span>
+                    <i onclick="stagedSlots.splice(${i},1);renderStagedSlotsUI();" class="fa-solid fa-circle-xmark cursor-pointer text-indigo-400"></i>
+                </span>
+            `).join('');
+        }
+
+        function compileInvigilationChart() {
+            const venuesPool = document.getElementById('exam-venues-list').value.split(',').map(v => v.trim()).filter(v => v.length);
+            const blockDate = document.getElementById('exam-block-date').value;
+            const dayTag = document.getElementById('exam-block-daytag').value;
+            if (!stagedSlots.length) return alert("Stage daily exam rows first.");
+
+            let historyTally = {};
+            facultyRanksPool.forEach(f => { historyTally[f.name] = 0; });
+
+            let allocatedAssignments = [];
+            stagedSlots.forEach(slot => {
+                let venueAssignments = {};
+                venuesPool.forEach(venue => {
+                    let viable = facultyRanksPool.filter(f => (historyTally[f.name] || 0) < (rankDutyCaps[f.rank] || 7));
+                    if (!viable.length) viable = facultyRanksPool;
+                    viable.sort((a, b) => (historyTally[a.name] || 0) - (historyTally[b.name] || 0));
+                    let selected = viable[0] ? viable[0].name : "Unassigned";
+                    venueAssignments[venue] = selected;
+                    if (selected !== "Unassigned") historyTally[selected] = (historyTally[selected] || 0) + 1;
+                });
+                allocatedAssignments.push({ targetClass: slot.targetClass, timeWindow: slot.timeWindow, courseLabel: slot.courseLabel, venueAssignments });
+            });
+
+            computedExamSchedule.push({ date: blockDate, day: dayTag, venues: venuesPool, slotsData: allocatedAssignments });
+            localStorage.setItem('portal_exams', JSON.stringify(computedExamSchedule));
+            stagedSlots = [];
+            renderStagedSlotsUI();
+            renderMasterExamGrid();
+            alert("Invigilation chart compiled!");
+        }
+
+        function renderMasterExamGrid() {
+            const container = document.getElementById('master-grid-output-anchor');
+            if (!computedExamSchedule.length) { container.innerHTML = '<p class="text-xs text-gray-400 italic text-center py-4">No invigilation schedules compiled yet.</p>'; return; }
+
+            container.innerHTML = computedExamSchedule.map((dayBlock, dayIdx) => {
+                const venueHeaders = dayBlock.venues.map(v => `<th class="px-3 py-2 bg-slate-800 text-white border text-center font-semibold text-[10px]">${v}</th>`).join('');
+                const rowsHtml = dayBlock.slotsData.map((slot, slotIdx) => {
+                    const venueCells = dayBlock.venues.map(v => `<td contenteditable="true" data-day="${dayIdx}" data-slot="${slotIdx}" data-venue="${v}" class="editable-cell px-3 py-2 border text-center font-medium bg-white text-[11px]">${slot.venueAssignments[v] || ''}</td>`).join('');
+                    return `<tr><td class="px-3 py-2 border font-bold text-gray-900 bg-slate-50">${slot.targetClass}<div class="text-[9px] font-mono text-gray-400">${slot.timeWindow}</div></td><td class="px-3 py-2 border text-slate-600 italic">${slot.courseLabel}</td>${venueCells}</tr>`;
+                }).join('');
+
+                return `
+                    <div class="bg-white rounded-xl border shadow-sm overflow-hidden text-xs">
+                        <div class="bg-slate-900 text-white px-4 py-2 flex justify-between">
+                            <span class="font-bold text-amber-400">Exam Roster</span>
+                            <span class="font-mono">${dayBlock.date} (${dayBlock.day})</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead><tr><th class="px-3 py-2 bg-slate-900 text-white border w-28">Target</th><th class="px-3 py-2 bg-slate-900 text-white border w-36">Course</th>${venueHeaders}</tr></thead>
+                                <tbody>${rowsHtml}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function saveManualEdits() {
+            document.querySelectorAll('.editable-cell').forEach(cell => {
+                const dIdx = parseInt(cell.getAttribute('data-day'));
+                const sIdx = parseInt(cell.getAttribute('data-slot'));
+                const vKey = cell.getAttribute('data-venue');
+                if (computedExamSchedule[dIdx] && computedExamSchedule[dIdx].slotsData[sIdx]) {
+                    computedExamSchedule[dIdx].slotsData[sIdx].venueAssignments[vKey] = cell.innerText.trim();
+                }
+            });
+            localStorage.setItem('portal_exams', JSON.stringify(computedExamSchedule));
+            alert("Edits saved successfully!");
+        }
+
+        function resetExamSchedules() {
+            if (confirm("Erase all compiled exam schedules?")) {
+                localStorage.removeItem('portal_exams');
+                computedExamSchedule = [];
+                renderMasterExamGrid();
+            }
+        }
+
+        /* --- 5. LAB BATCH SPLITTER --- */
+        function computeLabSplits() {
+            const courseKey = document.getElementById('lab-course-select').value;
+            const cap = parseInt(document.getElementById('lab-terminal-capacity').value) || 20;
+            const anchor = document.getElementById('lab-split-output-anchor');
+
+            if (!courseKey || !academicCourses[courseKey]) {
+                anchor.innerHTML = '<p class="text-gray-400 italic text-center py-8">Select a valid registered course.</p>';
+                return;
+            }
+
+            const roster = academicCourses[courseKey] || [];
+            if (!roster.length) {
+                anchor.innerHTML = '<p class="text-gray-400 italic text-center py-8">No registered students found in this course.</p>';
+                return;
+            }
+
+            let batches = Math.ceil(roster.length / cap);
+            let html = '';
+
+            for (let b = 0; b < batches; b++) {
+                let batchStudents = roster.slice(b * cap, (b + 1) * cap);
+                html += `
+                    <div class="bg-white rounded-xl border border-gray-200 shadow-xs overflow-hidden mb-4">
+                        <div class="bg-slate-800 text-white px-4 py-2 font-bold text-xs flex justify-between items-center">
+                            <span>Batch ${String.fromCharCode(65 + b)}</span>
+                            <span class="font-mono text-indigo-300 text-[11px]">${batchStudents.length} Students</span>
+                        </div>
+                        <div class="p-3 text-xs space-y-1">
+                            ${batchStudents.map(s => `
+                                <div class="flex justify-between py-1 border-b border-gray-100">
+                                    <span class="font-mono font-bold text-slate-900">${s.roll_no}</span>
+                                    <span class="text-slate-700 font-medium">${s.student_name}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            anchor.innerHTML = html;
+        }
+
+        /* --- 6. RESEARCH PIPELINE --- */
+        function addResearchProject(e) {
+            e.preventDefault();
+            const title = document.getElementById('res-title').value.trim();
+            const status = document.getElementById('res-status').value;
+            const date = document.getElementById('res-date').value;
+
+            if (!title || !date) return alert("Fill in project title and target date.");
+
+            researchProjects.push({ title, status, date });
+            localStorage.setItem('portal_research', JSON.stringify(researchProjects));
+
+            document.getElementById('res-title').value = '';
+            document.getElementById('res-date').value = '';
+            loadResearchData();
+        }
+
+        function loadResearchData() {
+            const body = document.getElementById('research-table-body');
+            body.innerHTML = researchProjects.length ? researchProjects.map(p => `
+                <tr>
+                    <td class="px-6 py-3 font-semibold text-slate-900">${p.title}</td>
+                    <td class="px-6 py-3"><span class="px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">${p.status}</span></td>
+                    <td class="px-6 py-3 font-mono text-xs text-slate-600">${p.date}</td>
+                </tr>
+            `).join('') : '<tr><td colspan="3" class="px-6 py-4 text-center text-slate-400 italic">No research proposals tracked yet.</td></tr>';
+
+            updateDashboardMetrics();
+        }
+
+        /* --- TAB SWITCHER ENGINE --- */
         function switchTab(tabId) {
             document.querySelectorAll('.tab-view').forEach(v => v.classList.add('hidden'));
             document.getElementById(`view-${tabId}`).classList.remove('hidden');
             document.querySelectorAll('.tab-btn').forEach(b => b.className = "tab-btn w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition");
-            document.getElementById(`btn-${tabId}`).className = "tab-btn w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg bg-indigo-600 text-white font-medium transition";
+            
+            const activeBtn = document.getElementById(`btn-${tabId}`);
+            if (activeBtn) {
+                activeBtn.className = "tab-btn w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg bg-indigo-600 text-white font-medium transition";
+            }
             
             if (tabId === 'dashboard') updateDashboardMetrics();
             if (tabId === 'courses') renderRosterView();
             if (tabId === 'assessment-center') switchAssessmentSubTab('quiz');
+            if (tabId === 'attendance') { populateAttendanceRoster(); }
+            if (tabId === 'exam-control') { renderMasterExamGrid(); renderFacultyBadges(); }
+            if (tabId === 'lab-scheduler') { computeLabSplits(); }
+            if (tabId === 'research') { loadResearchData(); }
         }
 
         function updateDashboardMetrics() {
             document.getElementById('dash-course-count').innerText = Object.keys(academicCourses).length;
             document.getElementById('dash-test-count').innerText = publishedTests.length;
             document.getElementById('dash-assign-count').innerText = floatedAssignments.length;
+            document.getElementById('dash-research-count').innerText = researchProjects.length;
         }
 
         document.getElementById('current-date').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
