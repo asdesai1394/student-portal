@@ -112,8 +112,9 @@
                 <!-- COURSES & ROSTER -->
                 <section id="view-courses" class="tab-view hidden space-y-6">
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- LEFT PANEL: REGISTER / APPEND COURSE -->
                         <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4 h-fit">
-                            <h3 class="text-lg font-bold text-gray-900">Add / Register Course Workspace</h3>
+                            <h3 class="text-lg font-bold text-gray-900">Add / Append Course Roster</h3>
                             <div>
                                 <label class="block text-xs font-semibold text-gray-700 mb-1">Course Title</label>
                                 <input type="text" id="new-course-name" placeholder="e.g., MTech Automotive or MTech Thermal" class="w-full border border-gray-300 rounded-lg p-2.5 text-xs font-semibold focus:outline-none">
@@ -138,21 +139,40 @@
                             </div>
 
                             <button onclick="addNewCourse()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2.5 rounded-lg transition shadow-sm">
-                                Save Course Roster Workspace
+                                Save / Append Roster Workspace
                             </button>
                         </div>
 
-                        <div class="lg:col-span-2 bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col">
-                            <h3 class="text-lg font-bold text-gray-900 mb-3">Registered Department Class Registries</h3>
-                            <div class="flex space-x-2 mb-4">
-                                <select id="course-roster-selector" onchange="renderRosterView()" class="border border-gray-300 rounded-lg p-2 text-xs bg-white focus:outline-none w-64 font-bold text-slate-800"></select>
+                        <!-- RIGHT PANEL: CLASS REGISTRY TABLE & INDIVIDUAL STUDENT ADD/REMOVE -->
+                        <div class="lg:col-span-2 bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col space-y-4">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                                <h3 class="text-lg font-bold text-gray-900">Registered Department Class Registries</h3>
+                                <div class="flex items-center gap-2">
+                                    <select id="course-roster-selector" onchange="renderRosterView()" class="border border-gray-300 rounded-lg p-2 text-xs bg-white focus:outline-none w-56 font-bold text-slate-800"></select>
+                                    <button onclick="deleteEntireCourse()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold px-3 py-2 rounded-lg transition" title="Delete Course">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
                             </div>
+
+                            <!-- INLINE ADD SINGLE STUDENT FORM -->
+                            <div class="bg-slate-50 p-3 rounded-lg border border-gray-200 flex flex-col sm:flex-row items-center gap-2 text-xs">
+                                <span class="font-bold text-slate-700 whitespace-nowrap"><i class="fa-solid fa-user-plus text-indigo-600 mr-1"></i>Add Single Student:</span>
+                                <input type="text" id="add-single-mis" placeholder="MIS / Roll No" class="border border-gray-300 rounded p-1.5 font-mono w-full sm:w-36 focus:outline-none bg-white">
+                                <input type="text" id="add-single-name" placeholder="Student Full Name" class="border border-gray-300 rounded p-1.5 w-full sm:w-48 focus:outline-none bg-white">
+                                <button onclick="addSingleStudentToRoster()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded transition whitespace-nowrap">
+                                    + Add Student
+                                </button>
+                            </div>
+
+                            <!-- CLASS ROSTER TABLE -->
                             <div class="overflow-x-auto rounded-lg border border-gray-200 flex-1 max-h-[350px]">
                                 <table class="w-full text-left text-xs">
                                     <thead class="bg-gray-50 text-gray-600 font-semibold border-b sticky top-0">
                                         <tr>
-                                            <th class="px-6 py-2.5">MIS / Roll No</th>
-                                            <th class="px-6 py-2.5">Student Full Name</th>
+                                            <th class="px-4 py-2.5">MIS / Roll No</th>
+                                            <th class="px-4 py-2.5">Student Full Name</th>
+                                            <th class="px-4 py-2.5 text-right">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody id="roster-display-body" class="divide-y divide-gray-100 text-gray-700"></tbody>
@@ -164,7 +184,6 @@
 
                 <!-- ASSESSMENT CENTER -->
                 <section id="view-assessment-center" class="tab-view hidden space-y-6">
-                    
                     <div class="bg-white p-2 rounded-xl border border-gray-200 shadow-sm flex flex-wrap gap-2 text-xs font-bold">
                         <button id="subtab-btn-quiz" onclick="switchAssessmentSubTab('quiz')" class="flex-1 py-2 px-4 rounded-lg bg-indigo-600 text-white shadow-xs transition flex items-center justify-center gap-2">
                             <i class="fa-solid fa-file-pen"></i> Quiz & Test Builder
@@ -394,66 +413,11 @@
 
                 </section>
 
-                <!-- ATTENDANCE TRACKER -->
-                <section id="view-attendance" class="tab-view hidden space-y-6">
-                    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                        <h3 class="text-lg font-bold mb-4 text-gray-900">Mark Live Session Attendance</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Select Active Class Registry</label>
-                                <select id="attendance-course-select" onchange="populateAttendanceRoster()" class="w-full border border-gray-300 rounded-lg p-2.5 bg-white focus:outline-none"></select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Session Date</label>
-                                <input type="date" id="attendance-date" class="w-full border border-gray-300 rounded-lg p-2.5 focus:outline-none">
-                            </div>
-                        </div>
-                        <div class="overflow-x-auto rounded-lg border border-gray-200 mb-4 max-h-[250px]">
-                            <table class="w-full text-left text-sm">
-                                <thead class="bg-gray-50 border-b border-gray-200 text-gray-600 font-semibold sticky top-0">
-                                    <tr>
-                                        <th class="px-6 py-2.5">Roll No</th>
-                                        <th class="px-6 py-2.5">Student Name</th>
-                                        <th class="px-6 py-2.5 text-center">Status Flag</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="live-attendance-body" class="divide-y divide-gray-200 text-gray-700"></tbody>
-                            </table>
-                        </div>
-                        <button onclick="submitAttendance()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-5 py-2.5 rounded-lg shadow-sm transition">
-                            Save Data Sheet
-                        </button>
-                    </div>
-                </section>
-
-                <!-- EXAM CONTROLLER -->
-                <section id="view-exam-control" class="tab-view hidden space-y-6">
-                    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                        <h3 class="text-lg font-bold text-gray-900 mb-2">Hierarchical Invigilation Planner</h3>
-                        <p class="text-xs text-gray-500">Configure invigilation rosters and duty allocations.</p>
-                    </div>
-                </section>
-
-                <!-- LAB SCHEDULER -->
-                <section id="view-lab-scheduler" class="tab-view hidden space-y-6">
-                    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                        <h3 class="text-lg font-bold text-gray-900 mb-2">Lab Capacity Batch Splitter</h3>
-                        <p class="text-xs text-gray-500">Partition large class rosters into terminal batches.</p>
-                    </div>
-                </section>
-
-                <!-- RESEARCH PIPELINE -->
-                <section id="view-research" class="tab-view hidden space-y-6">
-                    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                        <h3 class="text-lg font-bold text-gray-900 mb-2">Comprehensive Research Pipeline</h3>
-                        <p class="text-xs text-gray-500">Track grants, manuscripts, and proposals.</p>
-                    </div>
-                </section>
-
             </main>
         </div>
     </div>
 
+    <!-- ENGINE SCRIPT -->
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzqqRrchDX_FJRr6vQQnDMJQQwjzXhZJq1Za-SIr_XSBirdmL6CZo9D-6c_B83LMJbFdA/exec";
 
@@ -563,42 +527,53 @@
                 const workbook = XLSX.read(data, { type: 'array' });
                 const jsonSheet = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
                 temporaryParsedExcelRoster = jsonSheet.map(row => ({
-                    roll_no: String(row['MIS No'] || row['MIS'] || row['Roll No'] || row['roll_no'] || ''),
-                    student_name: String(row['Student Name'] || row['student_name'] || row['Name'] || '')
+                    roll_no: String(row['MIS No'] || row['MIS'] || row['Roll No'] || row['roll_no'] || '').trim(),
+                    student_name: String(row['Student Name'] || row['student_name'] || row['Name'] || '').trim()
                 })).filter(r => r.roll_no && r.student_name);
                 alert(`Processed ${temporaryParsedExcelRoster.length} student rows.`);
             };
             reader.readAsArrayBuffer(file);
         });
 
+        /* --- FEATURE ENHANCEMENT: APPEND NEW STUDENTS WITHOUT OVERWRITING --- */
         function addNewCourse() {
             const name = document.getElementById('new-course-name').value.trim();
             if (!name) return alert("Specify Course Title.");
 
-            let studentList = [];
+            let newStudentList = [];
             if (activeEnrollmentMode === 'excel') {
-                studentList = temporaryParsedExcelRoster.length ? temporaryParsedExcelRoster : [{ roll_no: "101", student_name: "Sample Student" }];
+                newStudentList = temporaryParsedExcelRoster.length ? temporaryParsedExcelRoster : [];
             } else {
                 const text = document.getElementById('roster-manual-input').value.trim();
                 text.split('\n').forEach(line => {
                     const p = line.split(',');
-                    if (p.length >= 2) studentList.push({ roll_no: p[0].trim(), student_name: p.slice(1).join(',').trim() });
+                    if (p.length >= 2) newStudentList.push({ roll_no: p[0].trim(), student_name: p.slice(1).join(',').trim() });
                 });
             }
 
-            if (!studentList.length) return alert("No valid student records found.");
+            if (!newStudentList.length) return alert("No valid student records found.");
 
-            academicCourses[name] = studentList;
+            // If course exists, merge new students without duplicate MIS numbers
+            let existingRoster = academicCourses[name] || [];
+            newStudentList.forEach(newStud => {
+                if (!existingRoster.some(s => String(s.roll_no).trim() === newStud.roll_no)) {
+                    existingRoster.push(newStud);
+                }
+            });
+
+            academicCourses[name] = existingRoster;
             localStorage.setItem('portal_courses', JSON.stringify(academicCourses));
+
             document.getElementById('new-course-name').value = '';
             document.getElementById('roster-manual-input').value = '';
             temporaryParsedExcelRoster = [];
 
             pushDataToCloud();
             initializeDropdowns();
+            document.getElementById('course-roster-selector').value = name;
             renderRosterView();
             updateDashboardMetrics();
-            alert(`Course workspace '${name}' saved and synced to cloud!`);
+            alert(`Roster updated! Course '${name}' now contains ${existingRoster.length} registered students.`);
         }
 
         function initializeDropdowns() {
@@ -611,10 +586,82 @@
             document.getElementById('attendance-course-select').innerHTML = options;
         }
 
+        /* --- FEATURE ENHANCEMENT: RENDER ROSTER WITH REMOVE BUTTON --- */
         function renderRosterView() {
             const key = document.getElementById('course-roster-selector').value;
             const container = document.getElementById('roster-display-body'); if (!key) return;
-            container.innerHTML = academicCourses[key].map(s => `<tr><td class="px-6 py-2 font-mono text-xs font-bold">${s.roll_no}</td><td>${s.student_name}</td></tr>`).join('');
+            
+            const roster = academicCourses[key] || [];
+
+            container.innerHTML = roster.length ? roster.map((s, idx) => `
+                <tr>
+                    <td class="px-4 py-2 font-mono text-xs font-bold text-slate-900">${s.roll_no}</td>
+                    <td class="px-4 py-2 text-slate-700 font-medium">${s.student_name}</td>
+                    <td class="px-4 py-2 text-right">
+                        <button onclick="removeSingleStudentFromRoster('${key}', ${idx})" class="text-rose-600 hover:text-rose-800 font-bold text-[11px] underline">
+                            Remove
+                        </button>
+                    </td>
+                </tr>
+            `).join('') : '<tr><td colspan="3" class="p-4 text-center text-slate-400 italic">No students registered in this course.</td></tr>';
+        }
+
+        /* --- FEATURE ENHANCEMENT: ADD SINGLE STUDENT INLINE --- */
+        function addSingleStudentToRoster() {
+            const courseKey = document.getElementById('course-roster-selector').value;
+            const mis = document.getElementById('add-single-mis').value.trim();
+            const name = document.getElementById('add-single-name').value.trim();
+
+            if (!courseKey) return alert("Select a course first.");
+            if (!mis) return alert("Enter student MIS Number.");
+            if (!name) return alert("Enter student Name.");
+
+            let roster = academicCourses[courseKey] || [];
+            
+            if (roster.some(s => String(s.roll_no).trim() === mis)) {
+                return alert(`Student with MIS '${mis}' is already enrolled in ${courseKey}.`);
+            }
+
+            roster.push({ roll_no: mis, student_name: name });
+            academicCourses[courseKey] = roster;
+            localStorage.setItem('portal_courses', JSON.stringify(academicCourses));
+
+            document.getElementById('add-single-mis').value = '';
+            document.getElementById('add-single-name').value = '';
+
+            pushDataToCloud();
+            renderRosterView();
+            alert(`Added ${name} (${mis}) to ${courseKey}!`);
+        }
+
+        /* --- FEATURE ENHANCEMENT: REMOVE SINGLE STUDENT --- */
+        function removeSingleStudentFromRoster(courseKey, index) {
+            let roster = academicCourses[courseKey] || [];
+            const stud = roster[index];
+
+            if (!stud) return;
+            if (!confirm(`Remove student ${stud.student_name} (${stud.roll_no}) from ${courseKey}?`)) return;
+
+            roster.splice(index, 1);
+            academicCourses[courseKey] = roster;
+            localStorage.setItem('portal_courses', JSON.stringify(academicCourses));
+
+            pushDataToCloud();
+            renderRosterView();
+        }
+
+        function deleteEntireCourse() {
+            const courseKey = document.getElementById('course-roster-selector').value;
+            if (!courseKey) return;
+
+            if (confirm(`DELETE ENTIRE COURSE '${courseKey}' and its roster?`)) {
+                delete academicCourses[courseKey];
+                localStorage.setItem('portal_courses', JSON.stringify(academicCourses));
+                pushDataToCloud();
+                initializeDropdowns();
+                renderRosterView();
+                updateDashboardMetrics();
+            }
         }
 
         function toggleQuestionTypeInputs() {
