@@ -88,7 +88,7 @@
                     </div>
                     <p class="text-xs text-slate-400">Warning: Assessments run in strict fullscreen. Switching tabs triggers auto-submission.</p>
                     
-                    <select id="available-tests-select" onchange="updateQuizAttemptStatus()" class="w-full border border-slate-600 rounded-lg p-2.5 bg-slate-900 text-white text-xs focus:outline-none"></select>
+                    <select id="available-tests-select" class="w-full border border-slate-600 rounded-lg p-2.5 bg-slate-900 text-white text-xs focus:outline-none"></select>
                     
                     <button id="launch-test-btn" onclick="startSelectedTest()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg text-xs transition shadow-md flex items-center justify-center gap-2">
                         <i class="fa-solid fa-expand"></i> Launch Proctored Test
@@ -147,7 +147,7 @@
     <!-- ENGINE SCRIPT -->
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzqqRrchDX_FJRr6vQQnDMJQQwjzXhZJq1Za-SIr_XSBirdmL6CZo9D-6c_B83LMJbFdA/exec";
-        const ADMIN_MASTER_PIN = "admin123"; // CHANGE YOUR MASTER ADMIN PIN HERE
+        const ADMIN_MASTER_PIN = "admin123";
 
         let academicCourses = {};
         let publishedTests = [];
@@ -157,7 +157,6 @@
         let quizTimerInterval = null;
         let isExamInProgress = false;
 
-        /* --- PROTECTED FACULTY / ADMIN PORTAL REDIRECT --- */
         function goToAdminPortal() {
             const enteredPin = prompt("🔒 RESTRICTED AREA: Enter Faculty / Admin Master Passcode:");
             if (enteredPin === ADMIN_MASTER_PIN) {
@@ -267,45 +266,47 @@
             document.getElementById('auth-user-badge').classList.add('hidden');
         }
 
+        /* --- 1. BUG FIX: COMPLETELY HIDE SUBMITTED TESTS AND ASSIGNMENTS --- */
         function populateStudentAssessments() {
             const course = currentAuthenticatedStudent.course;
-            
-            const courseTests = publishedTests.filter(t => t.course === course);
-            document.getElementById('available-tests-select').innerHTML = courseTests.length
-                ? courseTests.map(t => `<option value="${t.id}">${t.title} (${t.duration} Mins)</option>`).join('')
-                : '<option value="">No active quizzes for this course</option>';
+            const mis = currentAuthenticatedStudent.mis;
 
-            const courseAssignments = floatedAssignments.filter(a => a.course === course);
-            document.getElementById('available-assignments-select').innerHTML = courseAssignments.length
-                ? courseAssignments.map(a => `<option value="${a.id}">${a.title}</option>`).join('')
-                : '<option value="">No active assignments floated</option>';
+            // Fetch completed quizzes
+            let submittedTests = JSON.parse(localStorage.getItem('portal_test_submissions')) || [];
+            let completedTestIds = submittedTests.filter(s => s.mis === mis).map(s => s.testId);
 
-            updateQuizAttemptStatus();
-            updateAssignmentDeadlineDisplay();
-        }
-
-        function updateQuizAttemptStatus() {
-            const testId = document.getElementById('available-tests-select').value;
+            // Filter out completed quizzes entirely
+            const unattemptedQuizzes = publishedTests.filter(t => t.course === course && !completedTestIds.includes(t.id));
+            const quizSelect = document.getElementById('available-tests-select');
             const launchBtn = document.getElementById('launch-test-btn');
 
-            if (!testId) {
-                launchBtn.disabled = true;
-                launchBtn.className = "w-full bg-slate-700 text-slate-500 font-bold py-2.5 rounded-lg text-xs cursor-not-allowed";
-                return;
-            }
-
-            let submittedTests = JSON.parse(localStorage.getItem('portal_test_submissions')) || [];
-            let alreadyTaken = submittedTests.find(s => s.testId === testId && s.mis === currentAuthenticatedStudent.mis);
-
-            if (alreadyTaken) {
-                launchBtn.disabled = true;
-                launchBtn.className = "w-full bg-slate-700 text-emerald-400 font-bold py-2.5 rounded-lg text-xs cursor-not-allowed border border-emerald-800";
-                launchBtn.innerHTML = `<i class="fa-solid fa-check-circle"></i> Quiz Already Completed (${alreadyTaken.score}/${alreadyTaken.totalMarks})`;
-            } else {
+            if (unattemptedQuizzes.length > 0) {
+                quizSelect.innerHTML = unattemptedQuizzes.map(t => `<option value="${t.id}">${t.title} (${t.duration} Mins)</option>`).join('');
                 launchBtn.disabled = false;
                 launchBtn.className = "w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg text-xs transition shadow-md flex items-center justify-center gap-2";
                 launchBtn.innerHTML = `<i class="fa-solid fa-expand"></i> Launch Proctored Test`;
+            } else {
+                quizSelect.innerHTML = '<option value="">All pending quizzes completed!</option>';
+                launchBtn.disabled = true;
+                launchBtn.className = "w-full bg-slate-700 text-slate-500 font-bold py-2.5 rounded-lg text-xs cursor-not-allowed";
+                launchBtn.innerHTML = `<i class="fa-solid fa-check-double"></i> No Active Quizzes`;
             }
+
+            // Fetch completed assignments
+            let submittedAssignments = JSON.parse(localStorage.getItem('portal_assignments')) || [];
+            let completedAssignTitles = submittedAssignments.filter(a => a.mis === mis && a.course === course).map(a => a.title);
+
+            // Filter out completed assignments entirely
+            const unsubmittedAssignments = floatedAssignments.filter(a => a.course === course && !completedAssignTitles.includes(a.title));
+            const assignSelect = document.getElementById('available-assignments-select');
+
+            if (unsubmittedAssignments.length > 0) {
+                assignSelect.innerHTML = unsubmittedAssignments.map(a => `<option value="${a.id}">${a.title}</option>`).join('');
+            } else {
+                assignSelect.innerHTML = '<option value="">All assignments submitted!</option>';
+            }
+
+            updateAssignmentDeadlineDisplay();
         }
 
         function updateAssignmentDeadlineDisplay() {
@@ -314,24 +315,14 @@
             const uploadBtn = document.getElementById('upload-assignment-btn');
 
             if (!assignId) {
-                banner.innerText = "No active assignment selected.";
+                banner.innerText = "No pending assignments.";
                 uploadBtn.disabled = true;
                 uploadBtn.className = "w-full bg-slate-700 text-slate-500 font-bold py-2.5 rounded-lg text-xs cursor-not-allowed";
+                uploadBtn.innerHTML = `<i class="fa-solid fa-check-circle"></i> All Clear`;
                 return;
             }
 
             const assignment = floatedAssignments.find(a => a.id === assignId);
-            let submittedAssignments = JSON.parse(localStorage.getItem('portal_assignments')) || [];
-            let alreadySubmitted = submittedAssignments.find(a => a.title === assignment.title && a.mis === currentAuthenticatedStudent.mis && a.course === currentAuthenticatedStudent.course);
-
-            if (alreadySubmitted) {
-                banner.className = "text-[11px] p-2 rounded bg-emerald-950/80 border border-emerald-700 text-emerald-300 font-mono font-bold";
-                banner.innerText = `✅ Submitted on ${alreadySubmitted.timestamp}`;
-                uploadBtn.disabled = true;
-                uploadBtn.className = "w-full bg-slate-700 text-emerald-400 font-bold py-2.5 rounded-lg text-xs cursor-not-allowed border border-emerald-800";
-                uploadBtn.innerHTML = `<i class="fa-solid fa-circle-check"></i> Solution Uploaded`;
-                return;
-            }
 
             if (assignment) {
                 const deadlineDate = new Date(assignment.deadline);
@@ -361,14 +352,6 @@
             if (!assignId) return alert("No valid assignment selected.");
 
             const assignment = floatedAssignments.find(a => a.id === assignId);
-
-            let submittedAssignments = JSON.parse(localStorage.getItem('portal_assignments')) || [];
-            let alreadySubmitted = submittedAssignments.find(a => a.title === assignment.title && a.mis === currentAuthenticatedStudent.mis && a.course === currentAuthenticatedStudent.course);
-
-            if (alreadySubmitted) {
-                return alert("You have already submitted your solution for this assignment!");
-            }
-
             const file = fileInput.files[0];
             const uploadBtn = document.getElementById('upload-assignment-btn');
 
@@ -420,7 +403,7 @@
                         });
 
                         fileInput.value = '';
-                        updateAssignmentDeadlineDisplay();
+                        populateStudentAssessments();
                     } else {
                         alert("Submission Error: " + (data.message || "Unknown error"));
                         uploadBtn.disabled = false;
@@ -455,12 +438,6 @@
             activeTestObject = publishedTests.find(t => t.id === testId);
             if (!activeTestObject) return alert("Error locating test details.");
 
-            let existingSubmissions = JSON.parse(localStorage.getItem('portal_test_submissions')) || [];
-            let alreadyDone = existingSubmissions.find(s => s.testId === testId && s.mis === currentAuthenticatedStudent.mis);
-            if (alreadyDone) {
-                return alert(`Assessment Lock: You completed this exam on ${alreadyDone.timestamp}.\nScore: ${alreadyDone.score} / ${alreadyDone.totalMarks}`);
-            }
-
             if (!confirm("PROCTORED EXAM WARNING:\n\n1. The test will enter FULLSCREEN mode.\n2. Switching tabs or exiting fullscreen will AUTO-SUBMIT your exam immediately!\n\nAre you ready to begin?")) {
                 return;
             }
@@ -493,6 +470,7 @@
             }
         });
 
+        /* --- 2. BUG FIX: NO OVERLAPPING QUESTIONS LAYOUT ENGINE --- */
         function renderQuizQuestions() {
             const container = document.getElementById('quiz-questions-list');
             
@@ -500,19 +478,19 @@
                 const questionText = q.text || q.q || q.question || q.qText || q.title || "Question text unavailable";
 
                 return `
-                    <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-md space-y-4">
-                        <div class="flex items-start justify-between gap-4">
+                    <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-md space-y-4 clear-both block w-full relative">
+                        <div class="flex items-start justify-between gap-4 border-b border-slate-700/60 pb-3">
                             <span class="text-xs font-bold bg-indigo-500/20 text-indigo-300 px-2.5 py-1 rounded-md font-mono">Q${idx + 1}</span>
                             <span class="text-xs text-amber-400 font-semibold">${q.marks || q.positiveMarks || 1} Mark(s)</span>
                         </div>
                         
-                        <div class="text-sm font-semibold text-white leading-relaxed question-text-content">${questionText}</div>
+                        <div class="text-sm font-semibold text-white leading-relaxed question-text-content my-3 block w-full">${questionText}</div>
 
-                        <div class="space-y-2 pt-2">
+                        <div class="space-y-3 pt-2 block w-full">
                             ${(q.options || []).map((opt, oIdx) => `
-                                <label class="flex items-center space-x-3 p-3 bg-slate-900/60 hover:bg-slate-900 border border-slate-700/60 rounded-xl cursor-pointer transition text-xs">
-                                    <input type="radio" name="question_${idx}" value="${oIdx}" class="text-indigo-600 focus:ring-indigo-500">
-                                    <span class="text-slate-200 option-text-content">${opt}</span>
+                                <label class="flex items-center space-x-3 p-3 bg-slate-900/60 hover:bg-slate-900 border border-slate-700/60 rounded-xl cursor-pointer transition text-xs block w-full">
+                                    <input type="radio" name="question_${idx}" value="${oIdx}" class="text-indigo-600 focus:ring-indigo-500 mr-2">
+                                    <span class="text-slate-200 option-text-content inline-block">${opt}</span>
                                 </label>
                             `).join('')}
                         </div>
