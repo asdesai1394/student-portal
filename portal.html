@@ -209,7 +209,7 @@
                         </button>
                     </div>
 
-                    <!-- SUBTAB 1: QUIZ BUILDER -->
+                    <!-- QUIZ BUILDER -->
                     <div id="subtab-quiz-box" class="subtab-content bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-6">
                         <div class="border-b pb-3">
                             <h3 class="text-lg font-bold text-gray-900">1. Build Online Assessment / Quiz</h3>
@@ -312,7 +312,7 @@
                         </div>
                     </div>
 
-                    <!-- SUBTAB 2: FLOAT ASSIGNMENT -->
+                    <!-- FLOAT ASSIGNMENT -->
                     <div id="subtab-assignment-box" class="subtab-content hidden bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-6">
                         <div class="border-b pb-3">
                             <h3 class="text-lg font-bold text-gray-900">2. Float Assignment with Cut-off Deadline</h3>
@@ -356,7 +356,7 @@
                         </div>
                     </div>
 
-                    <!-- SUBTAB 3: RESULTS & GRADING -->
+                    <!-- RESULTS & GRADING WITH MULTI-LEVEL FILTERING -->
                     <div id="subtab-results-box" class="subtab-content hidden bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-6">
                         <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-3 gap-4">
                             <div>
@@ -364,10 +364,20 @@
                                 <p class="text-xs text-gray-500">View student quiz scores, assign assignment marks, and export grade archives.</p>
                             </div>
                             
-                            <div class="flex items-center space-x-3 bg-slate-50 p-2 rounded-xl border border-gray-200">
-                                <label class="text-xs font-bold text-slate-700 whitespace-nowrap"><i class="fa-solid fa-filter mr-1 text-indigo-600"></i>Filter Course:</label>
-                                <select id="filter-eval-course" onchange="renderEvaluatedTables()" class="text-xs font-bold border border-gray-300 rounded-lg p-1.5 bg-white focus:outline-none text-slate-800">
+                            <!-- 🔍 MULTI-LEVEL FILTER CONTROL BAR -->
+                            <div class="flex flex-wrap items-center gap-2 bg-slate-50 p-2 rounded-xl border border-gray-200">
+                                <span class="text-xs font-bold text-slate-700 whitespace-nowrap"><i class="fa-solid fa-filter text-indigo-600 mr-1"></i>Filters:</span>
+                                
+                                <select id="filter-eval-course" onchange="onCourseFilterChange()" class="text-xs font-bold border border-gray-300 rounded-lg p-1.5 bg-white focus:outline-none text-slate-800 max-w-[180px]">
                                     <option value="ALL">All Courses</option>
+                                </select>
+
+                                <select id="filter-eval-quiz" onchange="renderEvaluatedTables()" class="text-xs font-bold border border-gray-300 rounded-lg p-1.5 bg-white focus:outline-none text-slate-800 max-w-[180px]">
+                                    <option value="ALL">All Quizzes</option>
+                                </select>
+
+                                <select id="filter-eval-assignment" onchange="renderEvaluatedTables()" class="text-xs font-bold border border-gray-300 rounded-lg p-1.5 bg-white focus:outline-none text-slate-800 max-w-[180px]">
+                                    <option value="ALL">All Assignments</option>
                                 </select>
                             </div>
 
@@ -377,6 +387,7 @@
                             </div>
                         </div>
 
+                        <!-- QUIZ RESULTS TABLE -->
                         <div class="space-y-2">
                             <h4 class="font-bold text-xs text-indigo-700 flex items-center gap-1.5">
                                 <i class="fa-solid fa-square-poll-vertical"></i> Online Proctored Quiz Results
@@ -400,6 +411,7 @@
                             </div>
                         </div>
 
+                        <!-- SUBMITTED ASSIGNMENTS & GRADING TABLE -->
                         <div class="space-y-2 pt-4">
                             <h4 class="font-bold text-xs text-emerald-700 flex items-center gap-1.5">
                                 <i class="fa-brands fa-google-drive"></i> Submitted Assignments & Faculty Grading
@@ -728,7 +740,6 @@
                 });
         }
 
-        /* --- 1. COURSES & ROSTERS --- */
         function switchEnrollmentMode(mode) {
             activeEnrollmentMode = mode;
             document.getElementById('mode-excel-btn').className = mode === 'excel' ? "py-1.5 text-xs font-bold rounded bg-white text-indigo-600 shadow-xs" : "py-1.5 text-xs font-bold rounded text-gray-600";
@@ -901,7 +912,6 @@
             }
         }
 
-        /* --- 2. ASSESSMENT & EVALUATION CENTER --- */
         function switchAssessmentSubTab(subTab) {
             document.querySelectorAll('.subtab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(`subtab-${subTab}-box`).classList.remove('hidden');
@@ -924,17 +934,44 @@
             }
         }
 
+        /* --- 3. BUG FIX: MULTI-LEVEL DYNAMIC FILTER POPULATION --- */
         function populateCourseFilterDropdown() {
             const keys = Object.keys(academicCourses);
-            const select = document.getElementById('filter-eval-course');
-            const currentVal = select.value;
+            const courseSelect = document.getElementById('filter-eval-course');
+            const currentCourse = courseSelect.value;
 
-            select.innerHTML = `<option value="ALL">All Courses</option>` + 
+            courseSelect.innerHTML = `<option value="ALL">All Courses</option>` + 
                 keys.map(k => `<option value="${k}">${k}</option>`).join('');
 
-            if (currentVal && (keys.includes(currentVal) || currentVal === 'ALL')) {
-                select.value = currentVal;
+            if (currentCourse && (keys.includes(currentCourse) || currentCourse === 'ALL')) {
+                courseSelect.value = currentCourse;
             }
+
+            onCourseFilterChange();
+        }
+
+        function onCourseFilterChange() {
+            const selectedCourse = document.getElementById('filter-eval-course').value;
+
+            // Populate Quiz Filter Options based on selected course
+            const quizSelect = document.getElementById('filter-eval-quiz');
+            let filteredQuizzes = publishedTests;
+            if (selectedCourse !== 'ALL') {
+                filteredQuizzes = publishedTests.filter(t => t.course === selectedCourse);
+            }
+            quizSelect.innerHTML = `<option value="ALL">All Quizzes</option>` + 
+                filteredQuizzes.map(q => `<option value="${q.title}">${q.title}</option>`).join('');
+
+            // Populate Assignment Filter Options based on selected course
+            const assignSelect = document.getElementById('filter-eval-assignment');
+            let filteredAssignments = floatedAssignments;
+            if (selectedCourse !== 'ALL') {
+                filteredAssignments = floatedAssignments.filter(a => a.course === selectedCourse);
+            }
+            assignSelect.innerHTML = `<option value="ALL">All Assignments</option>` + 
+                filteredAssignments.map(a => `<option value="${a.title}">${a.title}</option>`).join('');
+
+            renderEvaluatedTables();
         }
 
         function toggleQuestionTypeInputs() {
@@ -1041,14 +1078,21 @@
             `).join('');
         }
 
+        /* --- 3. MULTI-LEVEL EVALUATED RESULTS TABLE FILTER --- */
         function renderEvaluatedTables() {
             const selectedCourseFilter = document.getElementById('filter-eval-course').value;
+            const selectedQuizFilter = document.getElementById('filter-eval-quiz').value;
+            const selectedAssignFilter = document.getElementById('filter-eval-assignment').value;
 
+            // 1. QUIZ RESULTS TABLE
             const testBody = document.getElementById('test-results-table-body');
             let testSubmissions = JSON.parse(localStorage.getItem('portal_test_submissions')) || [];
 
             if (selectedCourseFilter !== 'ALL') {
                 testSubmissions = testSubmissions.filter(s => s.course === selectedCourseFilter);
+            }
+            if (selectedQuizFilter !== 'ALL') {
+                testSubmissions = testSubmissions.filter(s => (s.testTitle || s.title) === selectedQuizFilter);
             }
 
             testBody.innerHTML = testSubmissions.length ? testSubmissions.map((r, i) => {
@@ -1072,13 +1116,17 @@
                         <td class="p-2.5 text-right"><button onclick="deleteQuizResultRecord(${i})" class="text-rose-600 font-bold hover:underline">Reset</button></td>
                     </tr>
                 `;
-            }).join('') : '<tr><td colspan="8" class="p-4 text-center text-gray-400 italic">No quiz submissions found for this course selection.</td></tr>';
+            }).join('') : '<tr><td colspan="8" class="p-4 text-center text-gray-400 italic">No quiz submissions match your filter selection.</td></tr>';
 
+            // 2. ASSIGNMENT SUBMISSIONS & FACULTY GRADING TABLE
             const assignBody = document.getElementById('assignments-table-body');
             let driveSubmissions = JSON.parse(localStorage.getItem('portal_assignments')) || [];
 
             if (selectedCourseFilter !== 'ALL') {
                 driveSubmissions = driveSubmissions.filter(a => a.course === selectedCourseFilter);
+            }
+            if (selectedAssignFilter !== 'ALL') {
+                driveSubmissions = driveSubmissions.filter(a => a.title === selectedAssignFilter);
             }
 
             assignBody.innerHTML = driveSubmissions.length ? driveSubmissions.map((a, i) => `
@@ -1104,7 +1152,7 @@
                         </button>
                     </td>
                 </tr>
-            `).join('') : '<tr><td colspan="8" class="p-4 text-center text-gray-400 italic">No assignment submissions found for this course selection.</td></tr>';
+            `).join('') : '<tr><td colspan="8" class="p-4 text-center text-gray-400 italic">No assignment submissions match your filter selection.</td></tr>';
         }
 
         function deleteQuizResultRecord(index) {
@@ -1138,8 +1186,13 @@
         function downloadTestScoresCSV() {
             let testSubmissions = JSON.parse(localStorage.getItem('portal_test_submissions')) || [];
             const selectedCourseFilter = document.getElementById('filter-eval-course').value;
+            const selectedQuizFilter = document.getElementById('filter-eval-quiz').value;
+
             if (selectedCourseFilter !== 'ALL') {
                 testSubmissions = testSubmissions.filter(s => s.course === selectedCourseFilter);
+            }
+            if (selectedQuizFilter !== 'ALL') {
+                testSubmissions = testSubmissions.filter(s => (s.testTitle || s.title) === selectedQuizFilter);
             }
 
             let csv = "Course,MIS,Student Name,Quiz Title,Score,Total Marks,Status,Timestamp\n";
@@ -1149,15 +1202,20 @@
 
             const link = document.createElement("a");
             link.setAttribute("href", encodeURI("data:text/csv;charset=utf-8," + csv));
-            link.setAttribute("download", `Quiz_Scores_${selectedCourseFilter}.csv`);
+            link.setAttribute("download", `Quiz_Scores_${selectedCourseFilter}_${selectedQuizFilter}.csv`);
             document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
 
         function downloadAssignmentsCSV() {
             let driveSubmissions = JSON.parse(localStorage.getItem('portal_assignments')) || [];
             const selectedCourseFilter = document.getElementById('filter-eval-course').value;
+            const selectedAssignFilter = document.getElementById('filter-eval-assignment').value;
+
             if (selectedCourseFilter !== 'ALL') {
                 driveSubmissions = driveSubmissions.filter(a => a.course === selectedCourseFilter);
+            }
+            if (selectedAssignFilter !== 'ALL') {
+                driveSubmissions = driveSubmissions.filter(a => a.title === selectedAssignFilter);
             }
 
             let csv = "Course,MIS,Student Name,Assignment Title,Grade,Remarks,Drive Link,Timestamp\n";
@@ -1167,11 +1225,11 @@
 
             const link = document.createElement("a");
             link.setAttribute("href", encodeURI("data:text/csv;charset=utf-8," + csv));
-            link.setAttribute("download", `Assignments_Evaluation_${selectedCourseFilter}.csv`);
+            link.setAttribute("download", `Assignments_Evaluation_${selectedCourseFilter}_${selectedAssignFilter}.csv`);
             document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
 
-        /* --- 3. ATTENDANCE TRACKER --- */
+        /* --- 4. ATTENDANCE TRACKER --- */
         function populateAttendanceRoster() {
             const course = document.getElementById('attendance-course-select').value;
             const container = document.getElementById('live-attendance-body'); if (!course) return;
@@ -1238,7 +1296,7 @@
             }).join('') : '<tr><td colspan="5" class="p-4 text-center text-slate-400 italic">No attendance data tracked yet.</td></tr>';
         }
 
-        /* --- 4. EXAM CONTROLLER --- */
+        /* --- 5. EXAM CONTROLLER --- */
         function renderFacultyBadges() {
             const container = document.getElementById('faculty-badges-list');
             container.innerHTML = facultyRanksPool.length ? facultyRanksPool.map((f, i) => `
@@ -1364,7 +1422,7 @@
             }
         }
 
-        /* --- 5. LAB BATCH SPLITTER --- */
+        /* --- 6. LAB BATCH SPLITTER --- */
         function computeLabSplits() {
             const courseKey = document.getElementById('lab-course-select').value;
             const cap = parseInt(document.getElementById('lab-terminal-capacity').value) || 20;
@@ -1407,7 +1465,7 @@
             anchor.innerHTML = html;
         }
 
-        /* --- 6. RESEARCH PIPELINE --- */
+        /* --- 7. RESEARCH PIPELINE --- */
         function addResearchProject(e) {
             e.preventDefault();
             const title = document.getElementById('res-title').value.trim();
