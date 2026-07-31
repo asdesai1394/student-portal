@@ -209,11 +209,13 @@
                         </button>
                     </div>
 
-                    <!-- QUIZ BUILDER -->
+                    <!-- SUBTAB 1: QUIZ BUILDER & PUBLISHED QUIZZES LIST -->
                     <div id="subtab-quiz-box" class="subtab-content bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-6">
-                        <div class="border-b pb-3">
-                            <h3 class="text-lg font-bold text-gray-900">1. Build Online Assessment / Quiz</h3>
-                            <p class="text-xs text-gray-500">Configure tests, timers, and marking schemes for student.html</p>
+                        <div class="border-b pb-3 flex justify-between items-center">
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-900">1. Build & Manage Online Assessments</h3>
+                                <p class="text-xs text-gray-500">Configure tests, timers, and marking schemes</p>
+                            </div>
                         </div>
 
                         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 text-xs">
@@ -301,8 +303,8 @@
                                         <h4 class="font-bold text-xs text-gray-800">Draft Questions Queue</h4>
                                         <span id="draft-q-count" class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full text-[10px]">0 Questions</span>
                                     </div>
-                                    <div id="draft-questions-list" class="overflow-y-auto max-h-80 mt-3 space-y-2">
-                                        <p class="text-gray-400 italic text-center py-8">No questions added yet.</p>
+                                    <div id="draft-questions-list" class="overflow-y-auto max-h-48 mt-3 space-y-2">
+                                        <p class="text-gray-400 italic text-center py-4">No draft questions added yet.</p>
                                     </div>
                                 </div>
                                 <button onclick="publishTestToPortal()" class="w-full bg-slate-900 text-amber-400 font-bold py-3 rounded-lg transition shadow">
@@ -310,9 +312,17 @@
                                 </button>
                             </div>
                         </div>
+
+                        <!-- 🗑️ PUBLISHED QUIZZES LIST (WITH REMOVE BUTTONS) -->
+                        <div class="border-t pt-4 space-y-3">
+                            <h4 class="font-bold text-xs text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fa-solid fa-list-check text-emerald-600"></i> Active Published Quizzes (<span id="published-quiz-count">0</span>)
+                            </h4>
+                            <div id="active-quizzes-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+                        </div>
                     </div>
 
-                    <!-- FLOAT ASSIGNMENT -->
+                    <!-- SUBTAB 2: FLOAT ASSIGNMENT -->
                     <div id="subtab-assignment-box" class="subtab-content hidden bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-6">
                         <div class="border-b pb-3">
                             <h3 class="text-lg font-bold text-gray-900">2. Float Assignment with Cut-off Deadline</h3>
@@ -356,7 +366,7 @@
                         </div>
                     </div>
 
-                    <!-- RESULTS & GRADING WITH MULTI-LEVEL FILTERING -->
+                    <!-- SUBTAB 3: RESULTS & GRADING WITH MULTI-LEVEL FILTERING -->
                     <div id="subtab-results-box" class="subtab-content hidden bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-6">
                         <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-3 gap-4">
                             <div>
@@ -364,7 +374,6 @@
                                 <p class="text-xs text-gray-500">View student quiz scores, assign assignment marks, and export grade archives.</p>
                             </div>
                             
-                            <!-- 🔍 MULTI-LEVEL FILTER CONTROL BAR -->
                             <div class="flex flex-wrap items-center gap-2 bg-slate-50 p-2 rounded-xl border border-gray-200">
                                 <span class="text-xs font-bold text-slate-700 whitespace-nowrap"><i class="fa-solid fa-filter text-indigo-600 mr-1"></i>Filters:</span>
                                 
@@ -735,11 +744,14 @@
 
                     initializeDropdowns();
                     renderRosterView();
+                    renderPublishedQuizzesList();
+                    renderFloatedAssignments();
                     renderEvaluatedTables();
                     updateDashboardMetrics();
                 });
         }
 
+        /* --- 1. COURSES & ROSTERS --- */
         function switchEnrollmentMode(mode) {
             activeEnrollmentMode = mode;
             document.getElementById('mode-excel-btn').className = mode === 'excel' ? "py-1.5 text-xs font-bold rounded bg-white text-indigo-600 shadow-xs" : "py-1.5 text-xs font-bold rounded text-gray-600";
@@ -912,6 +924,7 @@
             }
         }
 
+        /* --- 2. ASSESSMENT & EVALUATION CENTER --- */
         function switchAssessmentSubTab(subTab) {
             document.querySelectorAll('.subtab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(`subtab-${subTab}-box`).classList.remove('hidden');
@@ -927,6 +940,7 @@
             assignBtn.className = subTab === 'assignment' ? activeClass : inactiveClass;
             resultsBtn.className = subTab === 'results' ? activeClass : inactiveClass;
 
+            if (subTab === 'quiz') renderPublishedQuizzesList();
             if (subTab === 'assignment') renderFloatedAssignments();
             if (subTab === 'results') {
                 populateCourseFilterDropdown();
@@ -934,7 +948,6 @@
             }
         }
 
-        /* --- 3. BUG FIX: MULTI-LEVEL DYNAMIC FILTER POPULATION --- */
         function populateCourseFilterDropdown() {
             const keys = Object.keys(academicCourses);
             const courseSelect = document.getElementById('filter-eval-course');
@@ -953,7 +966,6 @@
         function onCourseFilterChange() {
             const selectedCourse = document.getElementById('filter-eval-course').value;
 
-            // Populate Quiz Filter Options based on selected course
             const quizSelect = document.getElementById('filter-eval-quiz');
             let filteredQuizzes = publishedTests;
             if (selectedCourse !== 'ALL') {
@@ -962,7 +974,6 @@
             quizSelect.innerHTML = `<option value="ALL">All Quizzes</option>` + 
                 filteredQuizzes.map(q => `<option value="${q.title}">${q.title}</option>`).join('');
 
-            // Populate Assignment Filter Options based on selected course
             const assignSelect = document.getElementById('filter-eval-assignment');
             let filteredAssignments = floatedAssignments;
             if (selectedCourse !== 'ALL') {
@@ -1020,7 +1031,7 @@
         function renderDraftQueue() {
             document.getElementById('draft-q-count').innerText = `${draftQuestions.length} Questions`;
             const box = document.getElementById('draft-questions-list');
-            if (!draftQuestions.length) { box.innerHTML = '<p class="text-gray-400 italic text-center py-8">No questions added yet.</p>'; return; }
+            if (!draftQuestions.length) { box.innerHTML = '<p class="text-gray-400 italic text-center py-4">No draft questions added yet.</p>'; return; }
             box.innerHTML = draftQuestions.map((q, i) => `
                 <div class="p-2.5 bg-white border rounded space-y-1 relative">
                     <button onclick="draftQuestions.splice(${i},1);renderDraftQueue();" class="absolute top-2 right-2 text-rose-500 font-bold text-xs">✕</button>
@@ -1042,7 +1053,45 @@
             
             pushDataToCloud();
             alert(`Quiz "${title}" published and synced to cloud!`);
-            draftQuestions = []; document.getElementById('test-title-input').value = ''; renderDraftQueue(); updateDashboardMetrics();
+            draftQuestions = []; 
+            document.getElementById('test-title-input').value = ''; 
+            renderDraftQueue(); 
+            renderPublishedQuizzesList();
+            updateDashboardMetrics();
+        }
+
+        /* --- 🗑️ RENDER PUBLISHED QUIZZES WITH REMOVE BUTTON --- */
+        function renderPublishedQuizzesList() {
+            document.getElementById('published-quiz-count').innerText = publishedTests.length;
+            const container = document.getElementById('active-quizzes-list');
+            
+            if (!publishedTests.length) {
+                container.innerHTML = '<p class="text-gray-400 italic col-span-3 text-center py-4">No quizzes published yet.</p>';
+                return;
+            }
+
+            container.innerHTML = publishedTests.map((q, idx) => `
+                <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl relative space-y-1">
+                    <button onclick="deletePublishedQuiz(${idx})" class="absolute top-2 right-2 text-rose-600 hover:text-rose-800 font-bold text-xs p-1" title="Delete Quiz">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                    <div class="font-bold text-slate-900 text-xs pr-6">${q.title}</div>
+                    <div class="text-[10px] text-indigo-600 font-semibold">${q.course}</div>
+                    <div class="text-[10px] text-slate-500 font-mono">${q.questions.length} Qs | ${q.duration} Mins</div>
+                </div>
+            `).join('');
+        }
+
+        function deletePublishedQuiz(index) {
+            const quiz = publishedTests[index];
+            if (!quiz) return;
+            if (!confirm(`Delete published quiz "${quiz.title}" for ${quiz.course}?\n\nStudents will no longer see this quiz.`)) return;
+
+            publishedTests.splice(index, 1);
+            localStorage.setItem('portal_published_tests', JSON.stringify(publishedTests));
+            pushDataToCloud();
+            renderPublishedQuizzesList();
+            updateDashboardMetrics();
         }
 
         function publishAssignmentToStudents() {
@@ -1064,21 +1113,35 @@
             renderFloatedAssignments(); updateDashboardMetrics();
         }
 
+        /* --- 🗑️ RENDER FLOATED ASSIGNMENTS WITH REMOVE BUTTON --- */
         function renderFloatedAssignments() {
             document.getElementById('floated-assign-count').innerText = `${floatedAssignments.length} Active`;
             const box = document.getElementById('active-assignments-list');
             if (!floatedAssignments.length) { box.innerHTML = '<p class="text-gray-400 italic text-center py-8">No assignments floated yet.</p>'; return; }
             box.innerHTML = floatedAssignments.map((a, i) => `
-                <div class="p-2.5 bg-white border border-indigo-100 rounded space-y-1 relative">
-                    <button onclick="floatedAssignments.splice(${i},1);localStorage.setItem('portal_floated_assignments',JSON.stringify(floatedAssignments));pushDataToCloud();renderFloatedAssignments();" class="absolute top-2 right-2 text-rose-500 font-bold text-xs">✕</button>
-                    <div class="font-bold text-gray-900 pr-5">${a.title}</div>
-                    <div class="text-[10px] text-gray-500">${a.course}</div>
+                <div class="p-2.5 bg-white border border-indigo-100 rounded-xl space-y-1 relative">
+                    <button onclick="deleteFloatedAssignment(${i})" class="absolute top-2 right-2 text-rose-600 hover:text-rose-800 font-bold text-xs p-1" title="Delete Assignment">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                    <div class="font-bold text-gray-900 pr-6">${a.title}</div>
+                    <div class="text-[10px] text-indigo-600 font-semibold">${a.course}</div>
                     <div class="text-[10px] text-rose-600 font-bold font-mono">⏳ Cut-off: ${new Date(a.deadline).toLocaleString()}</div>
                 </div>
             `).join('');
         }
 
-        /* --- 3. MULTI-LEVEL EVALUATED RESULTS TABLE FILTER --- */
+        function deleteFloatedAssignment(index) {
+            const assign = floatedAssignments[index];
+            if (!assign) return;
+            if (!confirm(`Delete floated assignment "${assign.title}" for ${assign.course}?`)) return;
+
+            floatedAssignments.splice(index, 1);
+            localStorage.setItem('portal_floated_assignments', JSON.stringify(floatedAssignments));
+            pushDataToCloud();
+            renderFloatedAssignments();
+            updateDashboardMetrics();
+        }
+
         function renderEvaluatedTables() {
             const selectedCourseFilter = document.getElementById('filter-eval-course').value;
             const selectedQuizFilter = document.getElementById('filter-eval-quiz').value;
@@ -1422,7 +1485,7 @@
             }
         }
 
-        /* --- 6. LAB BATCH SPLITTER --- */
+        /* --- 6. LAB SCHEDULER --- */
         function computeLabSplits() {
             const courseKey = document.getElementById('lab-course-select').value;
             const cap = parseInt(document.getElementById('lab-terminal-capacity').value) || 20;
