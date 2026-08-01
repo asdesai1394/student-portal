@@ -446,7 +446,7 @@
 
                 </section>
 
-                <!-- 4. ATTENDANCE TRACKER (RESTORED) -->
+                <!-- 4. ATTENDANCE TRACKER -->
                 <section id="view-attendance" class="tab-view hidden space-y-6">
                     <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
                         <h3 class="text-lg font-bold mb-4 text-gray-900">Mark Live Session Attendance</h3>
@@ -502,7 +502,7 @@
                     </div>
                 </section>
 
-                <!-- 5. EXAM CONTROLLER (RESTORED) -->
+                <!-- 5. EXAM CONTROLLER -->
                 <section id="view-exam-control" class="tab-view hidden space-y-6">
                     <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
                         <div class="xl:col-span-1 bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 h-fit text-xs">
@@ -597,7 +597,7 @@
                     </div>
                 </section>
 
-                <!-- 6. LAB SCHEDULER (RESTORED) -->
+                <!-- 6. LAB SCHEDULER -->
                 <section id="view-lab-scheduler" class="tab-view hidden space-y-6">
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4 h-fit text-xs">
@@ -630,7 +630,7 @@
                     </div>
                 </section>
 
-                <!-- 7. RESEARCH PIPELINE (RESTORED) -->
+                <!-- 7. RESEARCH PIPELINE -->
                 <section id="view-research" class="tab-view hidden space-y-6">
                     <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
                         <h3 class="text-lg font-bold mb-4 text-gray-900">Add New Grant Proposal / Manuscript Track</h3>
@@ -1332,7 +1332,7 @@
                             <p style="margin: 0 0 8px 0; font-weight: bold; font-size: 13px;">
                                 Q${i + 1}. ${r.questionText}
                                 <span style="float: right; font-size: 11px; font-weight: bold; color: ${r.isCorrect ? '#047857' : '#b91c1c'};">
-                                    ${r.isCorrect ? '✓ CORRECT (+' + r.earnedMarks + ')' : '✕ INCORRECT (0/' + r.marksValue + ')'}
+                                    ${r.isCorrect ? '✓ CORRECT (+' + r.earnedMarks + ')' : '✕ INCORRECT (' + r.earnedMarks + '/' + r.marksValue + ')'}
                                 </span>
                             </p>
                             <p style="margin: 4px 0; font-size: 12px;"><strong>Student Selected Answer:</strong> <span style="font-mono; ${r.isCorrect ? 'color: #047857; font-weight: bold;' : 'color: #b91c1c; font-weight: bold;'}">${r.selectedAnswer}</span></p>
