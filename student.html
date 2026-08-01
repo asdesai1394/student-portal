@@ -551,7 +551,7 @@
             }, 1000);
         }
 
-        /* --- 1. FEATURE: SUBMIT TEST WITHOUT SHOWING MARKS & AUDIT TRAIL RECORDING --- */
+        /* --- SUBMIT TEST WITH ACCURATE NEGATIVE MARKING & HIDDEN MARKS --- */
         function submitStudentTest(autoSubmitted, reason = "Manual Submission") {
             if (!isExamInProgress) return;
             
@@ -567,13 +567,14 @@
             let detailedResponses = [];
 
             activeTestObject.questions.forEach((q, idx) => {
-                const marks = parseInt(q.marks || q.positiveMarks) || 1;
-                totalMarks += marks;
+                const posMarks = parseFloat(q.positiveMarks || q.marks) || 1;
+                const negMarks = parseFloat(q.negativeMarks) || 0;
+                totalMarks += posMarks;
 
                 let responseObj = {
                     questionText: q.text || q.q,
                     questionType: q.type,
-                    marksValue: marks,
+                    marksValue: posMarks,
                     selectedAnswer: "No Answer Provided",
                     correctAnswer: "",
                     isCorrect: false,
@@ -584,14 +585,17 @@
                     const selectedOption = document.querySelector(`input[name="question_${idx}"]:checked`);
                     const answerIdx = selectedOption ? parseInt(selectedOption.value) : null;
                     
-                    responseObj.correctAnswer = q.options[q.correct];
+                    responseObj.correctAnswer = q.options ? q.options[q.correct] : "";
                     
-                    if (answerIdx !== null && q.options[answerIdx]) {
+                    if (answerIdx !== null && q.options && q.options[answerIdx]) {
                         responseObj.selectedAnswer = q.options[answerIdx];
                         if (answerIdx === parseInt(q.correct)) {
-                            score += marks;
+                            score += posMarks;
                             responseObj.isCorrect = true;
-                            responseObj.earnedMarks = marks;
+                            responseObj.earnedMarks = posMarks;
+                        } else {
+                            score -= negMarks;
+                            responseObj.earnedMarks = -negMarks;
                         }
                     }
                 } else {
@@ -602,15 +606,20 @@
                     if (userVal !== "") {
                         responseObj.selectedAnswer = userVal;
                         if (parseFloat(userVal) === parseFloat(q.correct)) {
-                            score += marks;
+                            score += posMarks;
                             responseObj.isCorrect = true;
-                            responseObj.earnedMarks = marks;
+                            responseObj.earnedMarks = posMarks;
+                        } else {
+                            score -= negMarks;
+                            responseObj.earnedMarks = -negMarks;
                         }
                     }
                 }
 
                 detailedResponses.push(responseObj);
             });
+
+            score = Math.max(0, score); // Prevent negative score floor
 
             let testRecord = {
                 testId: activeTestObject.id,
@@ -620,7 +629,7 @@
                 studentName: currentAuthenticatedStudent.name,
                 score: score,
                 totalMarks: totalMarks,
-                responses: detailedResponses, // Complete Question-Wise Audit Trail
+                responses: detailedResponses,
                 timestamp: new Date().toLocaleString(),
                 submissionType: reason
             };
@@ -639,7 +648,6 @@
                 })
             });
 
-            // Clean Confirmation without showing scores
             alert(`✅ EXAM SUBMITTED SUCCESSFULLY!\n\nYour responses for "${activeTestObject.title}" have been securely saved and submitted for faculty evaluation.\n\nStatus: ${reason}`);
 
             document.getElementById('student-quiz-interface').classList.add('hidden');
