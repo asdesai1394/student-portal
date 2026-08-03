@@ -279,11 +279,11 @@
                                     <div class="grid grid-cols-3 gap-3 pt-2">
                                         <div>
                                             <label class="block font-semibold text-emerald-700">Positive Marks</label>
-                                            <input type="number" id="q-pos-marks" value="1" min="0" class="w-full border border-gray-300 rounded-lg p-2 font-mono">
+                                            <input type="number" id="q-pos-marks" value="1" min="0" step="any" class="w-full border border-gray-300 rounded-lg p-2 font-mono">
                                         </div>
                                         <div>
-                                            <label class="block font-semibold text-rose-700">Negative Marks</label>
-                                            <input type="number" id="q-neg-marks" value="0" min="0" class="w-full border border-gray-300 rounded-lg p-2 font-mono">
+                                            <label class="block font-semibold text-rose-700">Negative Marks (Deduction)</label>
+                                            <input type="number" id="q-neg-marks" value="0.25" min="0" step="any" class="w-full border border-gray-300 rounded-lg p-2 font-mono">
                                         </div>
                                         <div>
                                             <label class="block font-semibold text-amber-700">Question Sec (0=Off)</label>
@@ -990,16 +990,25 @@
             document.getElementById('numerical-answer-container').classList.toggle('hidden', qType !== 'numerical');
         }
 
+        /* --- 🚨 ACCURATE NEGATIVE MARKS BINDING IN QUESTION DRAFTING --- */
         function addQuestionToDraft() {
             const qText = document.getElementById('q-text-input').value.trim();
             const qType = document.getElementById('q-type-select').value;
             const pos = parseFloat(document.getElementById('q-pos-marks').value) || 1;
-            const neg = parseFloat(document.getElementById('q-neg-marks').value) || 0;
+            const neg = parseFloat(document.getElementById('q-neg-marks').value) || 0; // Explicitly bind negative marks
             const sec = parseInt(document.getElementById('q-per-sec').value) || 0;
 
             if (!qText) return alert("Enter question text.");
 
-            let qObj = { text: qText, q: qText, type: qType, positiveMarks: pos, negativeMarks: neg, perQuestionSeconds: sec, marks: pos };
+            let qObj = { 
+                text: qText, 
+                q: qText, 
+                type: qType, 
+                positiveMarks: pos, 
+                negativeMarks: neg, // Save explicitly to question object
+                perQuestionSeconds: sec, 
+                marks: pos 
+            };
 
             if (qType === 'mcq') {
                 const opts = [
@@ -1020,10 +1029,13 @@
                 qObj.correct = parseFloat(num);
             }
 
-            draftQuestions.push(qObj); renderDraftQueue();
+            draftQuestions.push(qObj); 
+            renderDraftQueue();
             document.getElementById('q-text-input').value = '';
-            document.getElementById('opt-0').value = ''; document.getElementById('opt-1').value = '';
-            document.getElementById('opt-2').value = ''; document.getElementById('opt-3').value = '';
+            document.getElementById('opt-0').value = ''; 
+            document.getElementById('opt-1').value = '';
+            document.getElementById('opt-2').value = ''; 
+            document.getElementById('opt-3').value = '';
             document.getElementById('num-correct-ans').value = '';
         }
 
@@ -1035,7 +1047,7 @@
                 <div class="p-2.5 bg-white border rounded space-y-1 relative">
                     <button onclick="draftQuestions.splice(${i},1);renderDraftQueue();" class="absolute top-2 right-2 text-rose-500 font-bold text-xs">✕</button>
                     <div class="font-bold text-gray-800 pr-5">Q${i+1}. ${q.text}</div>
-                    <div class="text-[10px] text-gray-500 font-mono">Type: ${q.type.toUpperCase()} | Correct: ${q.answer}</div>
+                    <div class="text-[10px] text-gray-500 font-mono">Type: ${q.type.toUpperCase()} | Marks: +${q.positiveMarks}/-${q.negativeMarks} | Correct: ${q.answer}</div>
                 </div>
             `).join('');
         }
@@ -1105,10 +1117,12 @@
             `;
 
             quiz.questions.forEach((q, i) => {
+                const pos = q.positiveMarks !== undefined ? q.positiveMarks : 1;
+                const neg = q.negativeMarks !== undefined ? q.negativeMarks : 0;
                 content += `
                     <div style="margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb;">
                         <p style="margin: 0 0 8px 0; font-weight: bold; font-size: 14px;">
-                            Q${i + 1}. ${q.text || q.q} <span style="float: right; font-size: 12px; color: #6b7280;">(${q.marks || q.positiveMarks || 1} Marks)</span>
+                            Q${i + 1}. ${q.text || q.q} <span style="float: right; font-size: 12px; color: #6b7280;">(+${pos} / -${neg} Marks)</span>
                         </p>
                 `;
 
@@ -1243,7 +1257,7 @@
 
             testBody.innerHTML = testSubmissions.length ? testSubmissions.map((r, i) => {
                 const totalM = parseInt(r.totalMarks) || 1;
-                const scoreM = parseInt(r.score) || 0;
+                const scoreM = parseFloat(r.score) || 0;
                 const pct = ((scoreM / totalM) * 100).toFixed(1);
 
                 return `
