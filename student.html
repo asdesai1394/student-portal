@@ -80,16 +80,20 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- QUIZ / TEST SECTION -->
+                <!-- QUIZ / TEST SECTION WITH TIME-WINDOW ENFORCEMENT -->
                 <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl space-y-4">
                     <div class="flex items-center space-x-3 text-emerald-400">
                         <i class="fa-solid fa-shield-halved text-2xl"></i>
                         <h4 class="text-lg font-bold text-white">Proctored Online Quizzes</h4>
                     </div>
-                    <p class="text-xs text-slate-400">Warning: Assessments run in strict fullscreen. Switching tabs triggers auto-submission.</p>
+                    <p class="text-xs text-slate-400">Warning: Quizzes are only accessible during designated exam windows.</p>
                     
-                    <select id="available-tests-select" class="w-full border border-slate-600 rounded-lg p-2.5 bg-slate-900 text-white text-xs focus:outline-none"></select>
+                    <select id="available-tests-select" onchange="updateQuizWindowDisplay()" class="w-full border border-slate-600 rounded-lg p-2.5 bg-slate-900 text-white text-xs focus:outline-none"></select>
                     
+                    <div id="quiz-time-window-banner" class="text-[11px] p-2.5 rounded bg-slate-900 border border-slate-700 text-amber-300 font-mono">
+                        Select a quiz to check designated time slot.
+                    </div>
+
                     <button id="launch-test-btn" onclick="startSelectedTest()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg text-xs transition shadow-md flex items-center justify-center gap-2">
                         <i class="fa-solid fa-expand"></i> Launch Proctored Test
                     </button>
@@ -105,7 +109,7 @@
 
                     <select id="available-assignments-select" onchange="updateAssignmentDeadlineDisplay()" class="w-full border border-slate-600 rounded-lg p-2.5 bg-slate-900 text-white text-xs focus:outline-none"></select>
 
-                    <div id="assignment-deadline-banner" class="text-[11px] p-2 rounded bg-slate-900 border border-slate-700 text-amber-300 font-mono">
+                    <div id="assignment-deadline-banner" class="text-[11px] p-2.5 rounded bg-slate-900 border border-slate-700 text-amber-300 font-mono">
                         Select an assignment to view cut-off deadline.
                     </div>
 
@@ -275,19 +279,14 @@
 
             const unattemptedQuizzes = publishedTests.filter(t => t.course === course && !completedTestIds.includes(t.id));
             const quizSelect = document.getElementById('available-tests-select');
-            const launchBtn = document.getElementById('launch-test-btn');
 
             if (unattemptedQuizzes.length > 0) {
                 quizSelect.innerHTML = unattemptedQuizzes.map(t => `<option value="${t.id}">${t.title} (${t.duration} Mins)</option>`).join('');
-                launchBtn.disabled = false;
-                launchBtn.className = "w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg text-xs transition shadow-md flex items-center justify-center gap-2";
-                launchBtn.innerHTML = `<i class="fa-solid fa-expand"></i> Launch Proctored Test`;
             } else {
                 quizSelect.innerHTML = '<option value="">All pending quizzes completed!</option>';
-                launchBtn.disabled = true;
-                launchBtn.className = "w-full bg-slate-700 text-slate-500 font-bold py-2.5 rounded-lg text-xs cursor-not-allowed";
-                launchBtn.innerHTML = `<i class="fa-solid fa-check-double"></i> No Active Quizzes`;
             }
+
+            updateQuizWindowDisplay();
 
             let submittedAssignments = JSON.parse(localStorage.getItem('portal_assignments')) || [];
             let completedAssignTitles = submittedAssignments.filter(a => a.mis === mis && a.course === course).map(a => a.title);
@@ -302,6 +301,49 @@
             }
 
             updateAssignmentDeadlineDisplay();
+        }
+
+        /* --- 🕒 TIME-WINDOW CHECKER FOR QUIZZES --- */
+        function updateQuizWindowDisplay() {
+            const quizId = document.getElementById('available-tests-select').value;
+            const banner = document.getElementById('quiz-time-window-banner');
+            const launchBtn = document.getElementById('launch-test-btn');
+
+            if (!quizId) {
+                banner.innerText = "No pending quizzes.";
+                launchBtn.disabled = true;
+                launchBtn.className = "w-full bg-slate-700 text-slate-500 font-bold py-2.5 rounded-lg text-xs cursor-not-allowed";
+                launchBtn.innerHTML = `<i class="fa-solid fa-check-double"></i> No Active Quizzes`;
+                return;
+            }
+
+            const test = publishedTests.find(t => t.id === quizId);
+
+            if (test) {
+                const now = new Date();
+                const startTime = test.startTime ? new Date(test.startTime) : null;
+                const endTime = test.endTime ? new Date(test.endTime) : null;
+
+                if (startTime && now < startTime) {
+                    banner.className = "text-[11px] p-2.5 rounded bg-amber-950/80 border border-amber-700 text-amber-300 font-mono font-bold";
+                    banner.innerText = `🔒 UPCOMING EXAM: Available on ${startTime.toLocaleString()}`;
+                    launchBtn.disabled = true;
+                    launchBtn.className = "w-full bg-slate-700 text-slate-500 font-bold py-2.5 rounded-lg text-xs cursor-not-allowed";
+                    launchBtn.innerHTML = `<i class="fa-solid fa-lock"></i> Exam Not Active Yet`;
+                } else if (endTime && now > endTime) {
+                    banner.className = "text-[11px] p-2.5 rounded bg-rose-950/80 border border-rose-700 text-rose-300 font-mono font-bold";
+                    banner.innerText = `⚠️ EXAM CLOSED: Active window ended on ${endTime.toLocaleString()}`;
+                    launchBtn.disabled = true;
+                    launchBtn.className = "w-full bg-slate-700 text-slate-500 font-bold py-2.5 rounded-lg text-xs cursor-not-allowed";
+                    launchBtn.innerHTML = `<i class="fa-solid fa-ban"></i> Active Window Passed`;
+                } else {
+                    banner.className = "text-[11px] p-2.5 rounded bg-emerald-950/80 border border-emerald-700 text-emerald-300 font-mono";
+                    banner.innerText = `🟢 ACTIVE NOW: Window closes at ${endTime ? endTime.toLocaleTimeString() : 'N/A'}`;
+                    launchBtn.disabled = false;
+                    launchBtn.className = "w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg text-xs transition shadow-md flex items-center justify-center gap-2";
+                    launchBtn.innerHTML = `<i class="fa-solid fa-expand"></i> Launch Proctored Test`;
+                }
+            }
         }
 
         function updateAssignmentDeadlineDisplay() {
@@ -324,13 +366,13 @@
                 const now = new Date();
 
                 if (now > deadlineDate) {
-                    banner.className = "text-[11px] p-2 rounded bg-rose-950/80 border border-rose-700 text-rose-300 font-mono font-bold";
+                    banner.className = "text-[11px] p-2.5 rounded bg-rose-950/80 border border-rose-700 text-rose-300 font-mono font-bold";
                     banner.innerText = `⚠️ Submission Closed! Deadline exceeded on ${deadlineDate.toLocaleString()}`;
                     uploadBtn.disabled = true;
                     uploadBtn.className = "w-full bg-slate-700 text-slate-500 font-bold py-2.5 rounded-lg text-xs cursor-not-allowed";
                     uploadBtn.innerHTML = `<i class="fa-solid fa-lock"></i> Deadline Exceeded`;
                 } else {
-                    banner.className = "text-[11px] p-2 rounded bg-indigo-950/80 border border-indigo-700 text-indigo-300 font-mono";
+                    banner.className = "text-[11px] p-2.5 rounded bg-indigo-950/80 border border-indigo-700 text-indigo-300 font-mono";
                     banner.innerText = `⏳ Cut-off Deadline: ${deadlineDate.toLocaleString()}`;
                     uploadBtn.disabled = false;
                     uploadBtn.className = "w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg text-xs transition shadow-md flex items-center justify-center gap-2";
@@ -441,6 +483,14 @@
 
             const rawTest = publishedTests.find(t => t.id === testId);
             if (!rawTest) return alert("Error locating test details.");
+
+            const now = new Date();
+            if (rawTest.startTime && now < new Date(rawTest.startTime)) {
+                return alert(`ACCESS BLOCKED: This quiz is not active yet.\nScheduled start: ${new Date(rawTest.startTime).toLocaleString()}`);
+            }
+            if (rawTest.endTime && now > new Date(rawTest.endTime)) {
+                return alert(`ACCESS BLOCKED: The active window for this quiz has expired.`);
+            }
 
             if (!confirm("PROCTORED EXAM WARNING:\n\n1. Questions & options will be randomized.\n2. The test will enter FULLSCREEN mode.\n3. Switching tabs or exiting fullscreen will AUTO-SUBMIT your exam immediately!\n\nAre you ready to begin?")) {
                 return;
@@ -553,7 +603,6 @@
             }, 1000);
         }
 
-        /* --- 🚨 SUBMIT TEST WITH ACCURATE NEGATIVE DEDUCTION LOGIC --- */
         function submitStudentTest(autoSubmitted, reason = "Manual Submission") {
             if (!isExamInProgress) return;
             
@@ -597,7 +646,6 @@
                             responseObj.isCorrect = true;
                             responseObj.earnedMarks = posMarks;
                         } else {
-                            // 🚨 WRONG MCQ ANSWER: DEDUCT NEGATIVE MARKS
                             score -= negMarks;
                             responseObj.earnedMarks = -negMarks;
                         }
@@ -614,7 +662,6 @@
                             responseObj.isCorrect = true;
                             responseObj.earnedMarks = posMarks;
                         } else {
-                            // 🚨 WRONG NUMERICAL ANSWER: DEDUCT NEGATIVE MARKS
                             score -= negMarks;
                             responseObj.earnedMarks = -negMarks;
                         }
@@ -624,7 +671,6 @@
                 detailedResponses.push(responseObj);
             });
 
-            // Keep calculated score floor at 0 if desired
             score = Math.max(0, score);
 
             let testRecord = {
