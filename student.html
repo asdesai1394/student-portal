@@ -491,12 +491,14 @@
             
             container.innerHTML = activeTestObject.questions.map((q, idx) => {
                 const questionText = q.text || q.q || q.question || q.qText || q.title || "Question text unavailable";
+                const posMarks = parseFloat(q.positiveMarks || q.marks) || 1;
+                const negMarks = parseFloat(q.negativeMarks) || 0;
 
                 return `
                     <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-md space-y-4 clear-both block w-full relative">
                         <div class="flex items-start justify-between gap-4 border-b border-slate-700/60 pb-3">
                             <span class="text-xs font-bold bg-indigo-500/20 text-indigo-300 px-2.5 py-1 rounded-md font-mono">Q${idx + 1}</span>
-                            <span class="text-xs text-amber-400 font-semibold">${q.marks || q.positiveMarks || 1} Mark(s)</span>
+                            <span class="text-xs text-amber-400 font-semibold font-mono">+${posMarks} / -${negMarks} Mark(s)</span>
                         </div>
                         
                         <div class="text-sm font-semibold text-white leading-relaxed question-text-content my-3 block w-full">${questionText}</div>
@@ -551,7 +553,7 @@
             }, 1000);
         }
 
-        /* --- SUBMIT TEST WITH ACCURATE NEGATIVE MARKING & HIDDEN MARKS --- */
+        /* --- 🚨 SUBMIT TEST WITH ACCURATE NEGATIVE DEDUCTION LOGIC --- */
         function submitStudentTest(autoSubmitted, reason = "Manual Submission") {
             if (!isExamInProgress) return;
             
@@ -567,8 +569,9 @@
             let detailedResponses = [];
 
             activeTestObject.questions.forEach((q, idx) => {
-                const posMarks = parseFloat(q.positiveMarks || q.marks) || 1;
-                const negMarks = parseFloat(q.negativeMarks) || 0;
+                const posMarks = parseFloat(q.positiveMarks !== undefined ? q.positiveMarks : (q.marks !== undefined ? q.marks : 1));
+                const negMarks = parseFloat(q.negativeMarks !== undefined ? q.negativeMarks : 0);
+                
                 totalMarks += posMarks;
 
                 let responseObj = {
@@ -587,13 +590,14 @@
                     
                     responseObj.correctAnswer = q.options ? q.options[q.correct] : "";
                     
-                    if (answerIdx !== null && q.options && q.options[answerIdx]) {
+                    if (answerIdx !== null && q.options && q.options[answerIdx] !== undefined) {
                         responseObj.selectedAnswer = q.options[answerIdx];
                         if (answerIdx === parseInt(q.correct)) {
                             score += posMarks;
                             responseObj.isCorrect = true;
                             responseObj.earnedMarks = posMarks;
                         } else {
+                            // 🚨 WRONG MCQ ANSWER: DEDUCT NEGATIVE MARKS
                             score -= negMarks;
                             responseObj.earnedMarks = -negMarks;
                         }
@@ -610,6 +614,7 @@
                             responseObj.isCorrect = true;
                             responseObj.earnedMarks = posMarks;
                         } else {
+                            // 🚨 WRONG NUMERICAL ANSWER: DEDUCT NEGATIVE MARKS
                             score -= negMarks;
                             responseObj.earnedMarks = -negMarks;
                         }
@@ -619,7 +624,8 @@
                 detailedResponses.push(responseObj);
             });
 
-            score = Math.max(0, score); // Prevent negative score floor
+            // Keep calculated score floor at 0 if desired
+            score = Math.max(0, score);
 
             let testRecord = {
                 testId: activeTestObject.id,
