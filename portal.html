@@ -209,12 +209,12 @@
                         </button>
                     </div>
 
-                    <!-- SUBTAB 1: QUIZ BUILDER -->
+                    <!-- SUBTAB 1: QUIZ BUILDER WITH DESIGNATED ACTIVE TIME WINDOWS -->
                     <div id="subtab-quiz-box" class="subtab-content bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-6">
                         <div class="border-b pb-3 flex justify-between items-center">
                             <div>
-                                <h3 class="text-lg font-bold text-gray-900">1. Build & Manage Online Assessments</h3>
-                                <p class="text-xs text-gray-500">Configure tests, timers, and marking schemes</p>
+                                <h3 class="text-lg font-bold text-gray-900">1. Build & Schedule Online Assessments</h3>
+                                <p class="text-xs text-gray-500">Configure questions, timers, negative marking, and active hour windows.</p>
                             </div>
                         </div>
 
@@ -231,22 +231,30 @@
                                     </div>
                                 </div>
 
-                                <div class="grid grid-cols-2 gap-4 bg-gray-50 p-3 rounded-xl border">
+                                <!-- 🕒 ACTIVE TIME WINDOW CONFIGURATION -->
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-indigo-50/70 p-3.5 rounded-xl border border-indigo-100">
                                     <div>
-                                        <label class="block font-semibold text-gray-700 mb-1">Overall Test Duration (Minutes)</label>
-                                        <input type="number" id="test-duration-input" value="15" min="1" class="w-full border border-gray-300 rounded-lg p-2 font-mono">
+                                        <label class="block font-bold text-indigo-900 mb-1">Test Duration (Mins)</label>
+                                        <input type="number" id="test-duration-input" value="15" min="1" class="w-full border border-gray-300 rounded-lg p-2 bg-white font-mono font-bold">
                                     </div>
                                     <div>
-                                        <label class="block font-semibold text-gray-700 mb-1">Question Type</label>
-                                        <select id="q-type-select" onchange="toggleQuestionTypeInputs()" class="w-full border border-gray-300 rounded-lg p-2 bg-white">
-                                            <option value="mcq">Single Choice MCQ</option>
-                                            <option value="numerical">Numerical Value Entry</option>
-                                        </select>
+                                        <label class="block font-bold text-indigo-900 mb-1">Active Start Time</label>
+                                        <input type="datetime-local" id="test-start-picker" class="w-full border border-gray-300 rounded-lg p-2 bg-white font-mono text-[11px] focus:outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block font-bold text-indigo-900 mb-1">Active End Time</label>
+                                        <input type="datetime-local" id="test-end-picker" class="w-full border border-gray-300 rounded-lg p-2 bg-white font-mono text-[11px] focus:outline-none">
                                     </div>
                                 </div>
 
                                 <div class="p-4 border border-gray-200 rounded-xl space-y-3 bg-slate-50">
-                                    <label class="block font-bold text-gray-800">Question Statement</label>
+                                    <div class="flex justify-between items-center">
+                                        <label class="block font-bold text-gray-800">Question Statement</label>
+                                        <select id="q-type-select" onchange="toggleQuestionTypeInputs()" class="border border-gray-300 rounded-lg p-1.5 bg-white text-xs font-bold">
+                                            <option value="mcq">Single Choice MCQ</option>
+                                            <option value="numerical">Numerical Value Entry</option>
+                                        </select>
+                                    </div>
                                     <textarea id="q-text-input" rows="3" placeholder="e.g., What is the stability criteria for explicit 1D heat diffusion?" class="w-full border border-gray-300 rounded-lg p-2.5 bg-white focus:outline-none"></textarea>
 
                                     <div id="mcq-options-container" class="space-y-2">
@@ -990,12 +998,11 @@
             document.getElementById('numerical-answer-container').classList.toggle('hidden', qType !== 'numerical');
         }
 
-        /* --- 🚨 ACCURATE NEGATIVE MARKS BINDING IN QUESTION DRAFTING --- */
         function addQuestionToDraft() {
             const qText = document.getElementById('q-text-input').value.trim();
             const qType = document.getElementById('q-type-select').value;
             const pos = parseFloat(document.getElementById('q-pos-marks').value) || 1;
-            const neg = parseFloat(document.getElementById('q-neg-marks').value) || 0; // Explicitly bind negative marks
+            const neg = parseFloat(document.getElementById('q-neg-marks').value) || 0;
             const sec = parseInt(document.getElementById('q-per-sec').value) || 0;
 
             if (!qText) return alert("Enter question text.");
@@ -1005,7 +1012,7 @@
                 q: qText, 
                 type: qType, 
                 positiveMarks: pos, 
-                negativeMarks: neg, // Save explicitly to question object
+                negativeMarks: neg, 
                 perQuestionSeconds: sec, 
                 marks: pos 
             };
@@ -1052,20 +1059,34 @@
             `).join('');
         }
 
+        /* --- 🕒 PUBLISH TEST WITH ACTIVE TIME WINDOW --- */
         function publishTestToPortal() {
             const course = document.getElementById('test-course-selector').value;
             const title = document.getElementById('test-title-input').value.trim();
             const dur = parseInt(document.getElementById('test-duration-input').value) || 15;
+            const startTime = document.getElementById('test-start-picker').value;
+            const endTime = document.getElementById('test-end-picker').value;
 
             if (!course || !title || !draftQuestions.length) return alert("Provide Course, Title, and at least one question.");
 
-            publishedTests.push({ id: "test_" + Date.now(), course, title, duration: dur, questions: draftQuestions });
+            publishedTests.push({ 
+                id: "test_" + Date.now(), 
+                course, 
+                title, 
+                duration: dur, 
+                startTime: startTime || null, 
+                endTime: endTime || null, 
+                questions: draftQuestions 
+            });
+
             localStorage.setItem('portal_published_tests', JSON.stringify(publishedTests));
             
             pushDataToCloud();
-            alert(`Quiz "${title}" published and synced to cloud!`);
+            alert(`Quiz "${title}" published with designated active time window!`);
             draftQuestions = []; 
             document.getElementById('test-title-input').value = ''; 
+            document.getElementById('test-start-picker').value = '';
+            document.getElementById('test-end-picker').value = '';
             renderDraftQueue(); 
             renderPublishedQuizzesList();
             updateDashboardMetrics();
@@ -1080,25 +1101,34 @@
                 return;
             }
 
-            container.innerHTML = publishedTests.map((q, idx) => `
-                <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl relative space-y-2">
-                    <button onclick="deletePublishedQuiz(${idx})" class="absolute top-2 right-2 text-rose-600 hover:text-rose-800 font-bold text-xs p-1" title="Delete Quiz">
-                        <i class="fa-solid fa-trash"></i>
-                    </button>
-                    <div class="font-bold text-slate-900 text-xs pr-6">${q.title}</div>
-                    <div class="text-[10px] text-indigo-600 font-semibold">${q.course}</div>
-                    <div class="text-[10px] text-slate-500 font-mono">${q.questions.length} Qs | ${q.duration} Mins</div>
-                    
-                    <div class="pt-2 border-t border-slate-200 flex space-x-1 text-[10px]">
-                        <button onclick="exportQuizPaper(${idx}, 'pdf')" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-1 px-2 rounded flex items-center justify-center gap-1 transition">
-                            <i class="fa-solid fa-file-pdf"></i> PDF
+            container.innerHTML = publishedTests.map((q, idx) => {
+                const startStr = q.startTime ? new Date(q.startTime).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'}) : 'Anytime';
+                const endStr = q.endTime ? new Date(q.endTime).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'}) : 'Anytime';
+
+                return `
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl relative space-y-2">
+                        <button onclick="deletePublishedQuiz(${idx})" class="absolute top-2 right-2 text-rose-600 hover:text-rose-800 font-bold text-xs p-1" title="Delete Quiz">
+                            <i class="fa-solid fa-trash"></i>
                         </button>
-                        <button onclick="exportQuizPaper(${idx}, 'doc')" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1 px-2 rounded flex items-center justify-center gap-1 transition">
-                            <i class="fa-solid fa-file-word"></i> Word Doc
-                        </button>
+                        <div class="font-bold text-slate-900 text-xs pr-6">${q.title}</div>
+                        <div class="text-[10px] text-indigo-600 font-semibold">${q.course}</div>
+                        <div class="text-[10px] text-slate-500 font-mono">${q.questions.length} Qs | ${q.duration} Mins</div>
+                        
+                        <div class="text-[9px] bg-indigo-50 border border-indigo-100 p-1.5 rounded text-indigo-900 font-mono">
+                            📅 Active: ${startStr} – ${endStr}
+                        </div>
+
+                        <div class="pt-2 border-t border-slate-200 flex space-x-1 text-[10px]">
+                            <button onclick="exportQuizPaper(${idx}, 'pdf')" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-1 px-2 rounded flex items-center justify-center gap-1 transition">
+                                <i class="fa-solid fa-file-pdf"></i> PDF
+                            </button>
+                            <button onclick="exportQuizPaper(${idx}, 'doc')" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1 px-2 rounded flex items-center justify-center gap-1 transition">
+                                <i class="fa-solid fa-file-word"></i> Word Doc
+                            </button>
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         function exportQuizPaper(index, format) {
