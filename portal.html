@@ -209,12 +209,12 @@
                         </button>
                     </div>
 
-                    <!-- SUBTAB 1: QUIZ BUILDER WITH DESIGNATED ACTIVE TIME WINDOWS -->
+                    <!-- SUBTAB 1: QUIZ BUILDER -->
                     <div id="subtab-quiz-box" class="subtab-content bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-6">
                         <div class="border-b pb-3 flex justify-between items-center">
                             <div>
                                 <h3 class="text-lg font-bold text-gray-900">1. Build & Schedule Online Assessments</h3>
-                                <p class="text-xs text-gray-500">Configure questions, timers, negative marking, and active hour windows.</p>
+                                <p class="text-xs text-gray-500">Configure tests, timers, negative marking, and active hour windows.</p>
                             </div>
                         </div>
 
@@ -231,7 +231,6 @@
                                     </div>
                                 </div>
 
-                                <!-- 🕒 ACTIVE TIME WINDOW CONFIGURATION -->
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-indigo-50/70 p-3.5 rounded-xl border border-indigo-100">
                                     <div>
                                         <label class="block font-bold text-indigo-900 mb-1">Test Duration (Mins)</label>
@@ -373,12 +372,12 @@
                         </div>
                     </div>
 
-                    <!-- SUBTAB 3: RESULTS & GRADING -->
+                    <!-- SUBTAB 3: RESULTS & GRADING WITH BULK DELETE OPTIONS -->
                     <div id="subtab-results-box" class="subtab-content hidden bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-6">
                         <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-3 gap-4">
                             <div>
                                 <h3 class="text-lg font-bold text-gray-900">3. Course-Wise Evaluated Results & Assignment Grading</h3>
-                                <p class="text-xs text-gray-500">View student quiz scores, inspect question-wise response sheets, assign marks, and export CSVs.</p>
+                                <p class="text-xs text-gray-500">View student quiz scores, inspect response sheets, bulk delete attempts, and export CSVs.</p>
                             </div>
                             
                             <div class="flex flex-wrap items-center gap-2 bg-slate-50 p-2 rounded-xl border border-gray-200">
@@ -403,15 +402,24 @@
                             </div>
                         </div>
 
-                        <!-- QUIZ RESULTS TABLE -->
+                        <!-- QUIZ RESULTS TABLE WITH BULK SELECT & DELETE -->
                         <div class="space-y-2">
-                            <h4 class="font-bold text-xs text-indigo-700 flex items-center gap-1.5">
-                                <i class="fa-solid fa-square-poll-vertical"></i> Online Proctored Quiz Results & Audit Sheets
-                            </h4>
+                            <div class="flex justify-between items-center">
+                                <h4 class="font-bold text-xs text-indigo-700 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-square-poll-vertical"></i> Online Proctored Quiz Results & Audit Sheets
+                                </h4>
+                                <button onclick="deleteSelectedQuizSubmissions()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold text-[11px] px-3 py-1 rounded-lg transition shadow-xs flex items-center gap-1">
+                                    <i class="fa-solid fa-trash-can"></i> Delete Selected Entries
+                                </button>
+                            </div>
+
                             <div class="overflow-x-auto rounded-xl border border-gray-200">
                                 <table class="w-full text-left text-xs">
                                     <thead class="bg-gray-50 border-b text-gray-600 font-semibold">
                                         <tr>
+                                            <th class="p-2.5 text-center w-10">
+                                                <input type="checkbox" id="select-all-quiz-checkbox" onchange="toggleSelectAllQuizSubmissions(this)" class="w-4 h-4 text-indigo-600 rounded">
+                                            </th>
                                             <th class="p-2.5">Course</th>
                                             <th class="p-2.5">MIS Number</th>
                                             <th class="p-2.5">Student Name</th>
@@ -735,19 +743,37 @@
             });
         }
 
+        /* --- 🛡️ NON-DESTRUCTIVE FETCH & MERGE FROM CLOUD --- */
         function fetchLatestDataFromCloud() {
             fetch(SCRIPT_URL)
                 .then(res => res.json())
                 .then(data => {
-                    if (data.courses) academicCourses = data.courses;
-                    if (data.tests) publishedTests = data.tests;
-                    if (data.assignments) floatedAssignments = data.assignments;
+                    // Non-destructive merge for courses
+                    if (data.courses && Object.keys(data.courses).length > 0) {
+                        academicCourses = Object.assign({}, academicCourses, data.courses);
+                    }
+                    if (data.tests && data.tests.length > 0) {
+                        publishedTests = data.tests;
+                    }
+                    if (data.assignments && data.assignments.length > 0) {
+                        floatedAssignments = data.assignments;
+                    }
 
                     localStorage.setItem('portal_courses', JSON.stringify(academicCourses));
                     localStorage.setItem('portal_published_tests', JSON.stringify(publishedTests));
                     localStorage.setItem('portal_floated_assignments', JSON.stringify(floatedAssignments));
-                    if (data.testSubmissions) localStorage.setItem('portal_test_submissions', JSON.stringify(data.testSubmissions));
-                    if (data.driveSubmissions) localStorage.setItem('portal_assignments', JSON.stringify(data.driveSubmissions));
+                    
+                    if (data.testSubmissions && data.testSubmissions.length > 0) {
+                        let localSubs = JSON.parse(localStorage.getItem('portal_test_submissions')) || [];
+                        let merged = mergeArraysUnique(localSubs, data.testSubmissions, 'timestamp');
+                        localStorage.setItem('portal_test_submissions', JSON.stringify(merged));
+                    }
+                    
+                    if (data.driveSubmissions && data.driveSubmissions.length > 0) {
+                        let localDrive = JSON.parse(localStorage.getItem('portal_assignments')) || [];
+                        let mergedDrive = mergeArraysUnique(localDrive, data.driveSubmissions, 'timestamp');
+                        localStorage.setItem('portal_assignments', JSON.stringify(mergedDrive));
+                    }
 
                     initializeDropdowns();
                     renderRosterView();
@@ -755,7 +781,25 @@
                     renderFloatedAssignments();
                     renderEvaluatedTables();
                     updateDashboardMetrics();
+                })
+                .catch(() => {
+                    initializeDropdowns();
+                    renderRosterView();
+                    renderPublishedQuizzesList();
+                    renderFloatedAssignments();
+                    renderEvaluatedTables();
+                    updateDashboardMetrics();
                 });
+        }
+
+        function mergeArraysUnique(arr1, arr2, key) {
+            let combined = [...arr1, ...arr2];
+            let map = new Map();
+            combined.forEach(item => {
+                let k = item[key] || JSON.stringify(item);
+                if (!map.has(k)) map.set(k, item);
+            });
+            return Array.from(map.values());
         }
 
         /* --- 1. COURSES & ROSTERS --- */
@@ -1059,7 +1103,6 @@
             `).join('');
         }
 
-        /* --- 🕒 PUBLISH TEST WITH ACTIVE TIME WINDOW --- */
         function publishTestToPortal() {
             const course = document.getElementById('test-course-selector').value;
             const title = document.getElementById('test-title-input').value.trim();
@@ -1257,10 +1300,11 @@
             `).join('');
         }
 
+        /* --- 🗑️ DELETE FLOATED ASSIGNMENT --- */
         function deleteFloatedAssignment(index) {
             const assign = floatedAssignments[index];
             if (!assign) return;
-            if (!confirm(`Delete floated assignment "${assign.title}" for ${assign.course}?`)) return;
+            if (!confirm(`Delete floated assignment "${assign.title}" for ${assign.course}?\n\nStudents will no longer see this assignment in their portal.`)) return;
 
             floatedAssignments.splice(index, 1);
             localStorage.setItem('portal_floated_assignments', JSON.stringify(floatedAssignments));
@@ -1269,6 +1313,7 @@
             updateDashboardMetrics();
         }
 
+        /* --- 3. EVALUATED SUBMISSIONS WITH BULK SELECT & DELETE --- */
         function renderEvaluatedTables() {
             const selectedCourseFilter = document.getElementById('filter-eval-course').value;
             const selectedQuizFilter = document.getElementById('filter-eval-quiz').value;
@@ -1292,6 +1337,9 @@
 
                 return `
                     <tr>
+                        <td class="p-2.5 text-center">
+                            <input type="checkbox" class="quiz-select-checkbox w-4 h-4 text-indigo-600 rounded" value="${i}">
+                        </td>
                         <td class="p-2.5 font-bold text-indigo-700">${r.course || '-'}</td>
                         <td class="p-2.5 font-mono font-bold text-slate-900">${r.mis}</td>
                         <td class="p-2.5 font-medium">${r.studentName}</td>
@@ -1306,7 +1354,7 @@
                         <td class="p-2.5 text-right"><button onclick="deleteQuizResultRecord(${i})" class="text-rose-600 font-bold hover:underline">Delete</button></td>
                     </tr>
                 `;
-            }).join('') : '<tr><td colspan="8" class="p-4 text-center text-gray-400 italic">No quiz submissions match your filter selection.</td></tr>';
+            }).join('') : '<tr><td colspan="9" class="p-4 text-center text-gray-400 italic">No quiz submissions match your filter selection.</td></tr>';
 
             // 2. ASSIGNMENT SUBMISSIONS TABLE
             const assignBody = document.getElementById('assignments-table-body');
@@ -1346,6 +1394,38 @@
                     </td>
                 </tr>
             `).join('') : '<tr><td colspan="8" class="p-4 text-center text-gray-400 italic">No assignment submissions match your filter selection.</td></tr>';
+        }
+
+        /* --- 🔘 TOGGLE SELECT ALL QUIZ SUBMISSIONS --- */
+        function toggleSelectAllQuizSubmissions(masterCheckbox) {
+            document.querySelectorAll('.quiz-select-checkbox').forEach(cb => {
+                cb.checked = masterCheckbox.checked;
+            });
+        }
+
+        /* --- 🗑️ BULK DELETE SELECTED QUIZ SUBMISSIONS --- */
+        function deleteSelectedQuizSubmissions() {
+            const selectedCheckboxes = document.querySelectorAll('.quiz-select-checkbox:checked');
+            if (!selectedCheckboxes.length) return alert("Please select at least one quiz submission entry to delete.");
+
+            if (!confirm(`Delete ${selectedCheckboxes.length} selected quiz submission(s)?\n\nThis action will sync and permanently delete them from cloud.`)) return;
+
+            let testSubmissions = JSON.parse(localStorage.getItem('portal_test_submissions')) || [];
+            
+            let indicesToRemove = Array.from(selectedCheckboxes).map(cb => parseInt(cb.value)).sort((a, b) => b - a);
+
+            indicesToRemove.forEach(idx => {
+                testSubmissions.splice(idx, 1);
+            });
+
+            localStorage.setItem('portal_test_submissions', JSON.stringify(testSubmissions));
+            
+            const masterCb = document.getElementById('select-all-quiz-checkbox');
+            if (masterCb) masterCb.checked = false;
+
+            pushDataToCloud();
+            renderEvaluatedTables();
+            alert(`Deleted ${indicesToRemove.length} quiz submission record(s)!`);
         }
 
         function viewStudentResponseSheet(index) {
@@ -1785,6 +1865,8 @@
         }
 
         document.getElementById('current-date').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        
+        // Initial Non-destructive Load
         fetchLatestDataFromCloud();
     </script>
 </body>
