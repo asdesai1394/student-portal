@@ -7,7 +7,7 @@
 
     <!-- 🔒 MASTER ADMIN SECURITY GATE -->
     <script>
-        const ADMIN_MASTER_PIN = "admin123"; // CHANGE YOUR MASTER ADMIN PIN HERE
+        const ADMIN_MASTER_PIN = "admin123";
 
         if (sessionStorage.getItem("admin_authenticated") !== "true") {
             const pin = prompt("🔒 RESTRICTED FACULTY PORTAL: Enter Master Admin Passcode:");
@@ -372,7 +372,7 @@
                         </div>
                     </div>
 
-                    <!-- SUBTAB 3: RESULTS & GRADING WITH BULK DELETE OPTIONS -->
+                    <!-- SUBTAB 3: RESULTS & GRADING -->
                     <div id="subtab-results-box" class="subtab-content hidden bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-6">
                         <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-3 gap-4">
                             <div>
@@ -402,7 +402,7 @@
                             </div>
                         </div>
 
-                        <!-- QUIZ RESULTS TABLE WITH BULK SELECT & DELETE -->
+                        <!-- QUIZ RESULTS TABLE -->
                         <div class="space-y-2">
                             <div class="flex justify-between items-center">
                                 <h4 class="font-bold text-xs text-indigo-700 flex items-center gap-1.5">
@@ -1300,7 +1300,6 @@
             `).join('');
         }
 
-        /* --- 🗑️ DELETE FLOATED ASSIGNMENT --- */
         function deleteFloatedAssignment(index) {
             const assign = floatedAssignments[index];
             if (!assign) return;
@@ -1396,14 +1395,12 @@
             `).join('') : '<tr><td colspan="8" class="p-4 text-center text-gray-400 italic">No assignment submissions match your filter selection.</td></tr>';
         }
 
-        /* --- 🔘 TOGGLE SELECT ALL QUIZ SUBMISSIONS --- */
         function toggleSelectAllQuizSubmissions(masterCheckbox) {
             document.querySelectorAll('.quiz-select-checkbox').forEach(cb => {
                 cb.checked = masterCheckbox.checked;
             });
         }
 
-        /* --- 🗑️ BULK DELETE SELECTED QUIZ SUBMISSIONS --- */
         function deleteSelectedQuizSubmissions() {
             const selectedCheckboxes = document.querySelectorAll('.quiz-select-checkbox:checked');
             if (!selectedCheckboxes.length) return alert("Please select at least one quiz submission entry to delete.");
@@ -1866,7 +1863,6 @@
 
         document.getElementById('current-date').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         
-        // Initial Non-destructive Load
         fetchLatestDataFromCloud();
     </script>
 </body>
