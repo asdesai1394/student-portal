@@ -745,60 +745,79 @@
 
         /* --- 🛡️ NON-DESTRUCTIVE FETCH & MERGE FROM CLOUD --- */
         function fetchLatestDataFromCloud() {
+            document.getElementById('cloud-sync-badge').innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Loading Cloud Data...`;
+
             fetch(SCRIPT_URL)
                 .then(res => res.json())
                 .then(data => {
                     if (data.courses && Object.keys(data.courses).length > 0) {
                         academicCourses = Object.assign({}, academicCourses, data.courses);
                     }
-                    if (data.tests && data.tests.length > 0) {
-                        publishedTests = data.tests;
-                    }
-                    if (data.assignments && data.assignments.length > 0) {
-                        floatedAssignments = data.assignments;
-                    }
+                    if (data.tests && data.tests.length > 0) publishedTests = data.tests;
+                    if (data.assignments && data.assignments.length > 0) floatedAssignments = data.assignments;
 
                     localStorage.setItem('portal_courses', JSON.stringify(academicCourses));
                     localStorage.setItem('portal_published_tests', JSON.stringify(publishedTests));
                     localStorage.setItem('portal_floated_assignments', JSON.stringify(floatedAssignments));
+
+                    // Safely merge assignment submissions
+                    let localDriveSubmissions = JSON.parse(localStorage.getItem('portal_assignments')) || [];
+                    let cloudDriveSubmissions = data.driveSubmissions || [];
+
+                    let combinedDrive = [...localDriveSubmissions, ...cloudDriveSubmissions];
+                    let uniqueDriveMap = new Map();
                     
+                    combinedDrive.forEach(sub => {
+                        if (sub && sub.mis && sub.title) {
+                            let key = `${sub.mis}_${sub.title}`.toLowerCase().trim();
+                            if (uniqueDriveMap.has(key)) {
+                                let existing = uniqueDriveMap.get(key);
+                                sub.grade = sub.grade || existing.grade;
+                                sub.remarks = sub.remarks || existing.remarks;
+                            }
+                            uniqueDriveMap.set(key, sub);
+                        }
+                    });
+
+                    let finalDriveSubmissions = Array.from(uniqueDriveMap.values());
+                    localStorage.setItem('portal_assignments', JSON.stringify(finalDriveSubmissions));
+
+                    // Safely merge quiz submissions
                     if (data.testSubmissions && data.testSubmissions.length > 0) {
-                        let localSubs = JSON.parse(localStorage.getItem('portal_test_submissions')) || [];
-                        let merged = mergeArraysUnique(localSubs, data.testSubmissions, 'timestamp');
-                        localStorage.setItem('portal_test_submissions', JSON.stringify(merged));
+                        let localQuizSubs = JSON.parse(localStorage.getItem('portal_test_submissions')) || [];
+                        let combinedQuiz = [...localQuizSubs, ...data.testSubmissions];
+                        let uniqueQuizMap = new Map();
+                        
+                        combinedQuiz.forEach(qSub => {
+                            if (qSub && qSub.mis && (qSub.testId || qSub.testTitle || qSub.title)) {
+                                let key = `${qSub.mis}_${qSub.testId || qSub.testTitle || qSub.title}_${qSub.timestamp}`.toLowerCase().trim();
+                                uniqueQuizMap.set(key, qSub);
+                            }
+                        });
+                        localStorage.setItem('portal_test_submissions', JSON.stringify(Array.from(uniqueQuizMap.values())));
                     }
-                    
-                    if (data.driveSubmissions && data.driveSubmissions.length > 0) {
-                        let localDrive = JSON.parse(localStorage.getItem('portal_assignments')) || [];
-                        let mergedDrive = mergeArraysUnique(localDrive, data.driveSubmissions, 'timestamp');
-                        localStorage.setItem('portal_assignments', JSON.stringify(mergedDrive));
-                    }
+
+                    document.getElementById('cloud-sync-badge').innerHTML = `<i class="fa-solid fa-cloud"></i> Synced to Cloud`;
 
                     initializeDropdowns();
                     renderRosterView();
                     renderPublishedQuizzesList();
                     renderFloatedAssignments();
+                    populateCourseFilterDropdown();
                     renderEvaluatedTables();
                     updateDashboardMetrics();
                 })
-                .catch(() => {
+                .catch(err => {
+                    console.error("Cloud fetch error:", err);
+                    document.getElementById('cloud-sync-badge').innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-400"></i> Local Cached`;
                     initializeDropdowns();
                     renderRosterView();
                     renderPublishedQuizzesList();
                     renderFloatedAssignments();
+                    populateCourseFilterDropdown();
                     renderEvaluatedTables();
                     updateDashboardMetrics();
                 });
-        }
-
-        function mergeArraysUnique(arr1, arr2, key) {
-            let combined = [...arr1, ...arr2];
-            let map = new Map();
-            combined.forEach(item => {
-                let k = item[key] || JSON.stringify(item);
-                if (!map.has(k)) map.set(k, item);
-            });
-            return Array.from(map.values());
         }
 
         /* --- 1. COURSES & ROSTERS --- */
