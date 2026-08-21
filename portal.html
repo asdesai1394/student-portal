@@ -7,7 +7,7 @@
 
     <!-- 🔒 MASTER ADMIN SECURITY GATE -->
     <script>
-        const ADMIN_MASTER_PIN = "admin123"; // Master admin passcode
+        const ADMIN_MASTER_PIN = "admin123";
 
         if (sessionStorage.getItem("admin_authenticated") !== "true") {
             const pin = prompt("🔒 RESTRICTED FACULTY PORTAL: Enter Master Admin Passcode:");
@@ -24,9 +24,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- SheetJS for Flexible Excel Parsing -->
+    <!-- SheetJS for Excel Parsing -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- KaTeX for Math Equations -->
+    <!-- KaTeX for Equations -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
 </head>
@@ -163,7 +163,7 @@
                                 <h3 class="text-lg font-bold text-gray-900">Registered Department Class Registries</h3>
                                 <div class="flex items-center gap-2">
                                     <select id="course-roster-selector" onchange="renderRosterView()" class="border border-gray-300 rounded-lg p-2 text-xs bg-white focus:outline-none w-56 font-bold text-slate-800"></select>
-                                    <button onclick="deleteEntireCourse()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold px-3 py-2 rounded-lg transition" title="Delete Course">
+                                    <button onclick="deleteEntireCourse()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold px-3 py-2 rounded-lg transition" title="Delete Entire Course">
                                         <i class="fa-solid fa-trash-can"></i>
                                     </button>
                                 </div>
@@ -751,18 +751,18 @@
             });
         }
 
-        /* --- 🛡️ NON-DESTRUCTIVE FETCH & MERGE FROM CLOUD --- */
+        /* --- 🛡️ CLEAN FETCH & SYNC --- */
         function fetchLatestDataFromCloud() {
             document.getElementById('cloud-sync-badge').innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Loading Cloud Data...`;
 
             fetch(SCRIPT_URL)
                 .then(res => res.json())
                 .then(data => {
-                    if (data.courses && Object.keys(data.courses).length > 0) {
-                        academicCourses = Object.assign({}, academicCourses, data.courses);
+                    if (data.courses !== undefined) {
+                        academicCourses = data.courses;
                     }
-                    if (data.tests && data.tests.length > 0) publishedTests = data.tests;
-                    if (data.assignments && data.assignments.length > 0) floatedAssignments = data.assignments;
+                    if (data.tests !== undefined) publishedTests = data.tests;
+                    if (data.assignments !== undefined) floatedAssignments = data.assignments;
 
                     localStorage.setItem('portal_courses', JSON.stringify(academicCourses));
                     localStorage.setItem('portal_published_tests', JSON.stringify(publishedTests));
@@ -946,7 +946,11 @@
 
         function renderRosterView() {
             const key = document.getElementById('course-roster-selector').value;
-            const container = document.getElementById('roster-display-body'); if (!key) return;
+            const container = document.getElementById('roster-display-body'); 
+            if (!key || !academicCourses[key]) {
+                container.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-400 italic">No registered courses available.</td></tr>';
+                return;
+            }
             
             const roster = academicCourses[key] || [];
 
@@ -1032,13 +1036,14 @@
             const courseKey = document.getElementById('course-roster-selector').value;
             if (!courseKey) return;
 
-            if (confirm(`DELETE ENTIRE COURSE '${courseKey}' and its roster?`)) {
+            if (confirm(`DELETE ENTIRE COURSE '${courseKey}' and its roster?\n\nThis will immediately remove this course from your Google Sheet as well.`)) {
                 delete academicCourses[courseKey];
                 localStorage.setItem('portal_courses', JSON.stringify(academicCourses));
                 pushDataToCloud();
                 initializeDropdowns();
                 renderRosterView();
                 updateDashboardMetrics();
+                alert(`Course '${courseKey}' deleted successfully!`);
             }
         }
 
