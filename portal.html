@@ -117,22 +117,21 @@
                             </div>
                         </div>
                         <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex items-center space-x-4">
-                            <div class="p-4 bg-rose-50 rounded-lg text-rose-600"><i class="fa-solid fa-microscope text-2xl"></i></div>
+                            <div class="p-4 bg-rose-50 rounded-lg text-rose-600"><i class="fa-solid fa-sitemap text-2xl"></i></div>
                             <div>
-                                <p class="text-sm text-gray-500 font-medium">Research Tracks</p>
-                                <p id="dash-research-count" class="text-2xl font-bold text-gray-900">0</p>
+                                <p class="text-sm text-gray-500 font-medium">Admin Responsibilities</p>
+                                <p id="dash-admin-count" class="text-2xl font-bold text-gray-900">0</p>
                             </div>
                         </div>
                     </div>
                 </section>
 
-                <!-- 🌟 2. FACULTY DOSSIER & PROFILE BUILDER -->
+                <!-- 2. FACULTY DOSSIER & PROFILE BUILDER -->
                 <section id="view-profile" class="tab-view hidden space-y-6">
-                    <!-- PROFILE ACTIONS BAR -->
                     <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
                             <h2 class="text-lg font-bold text-gray-900">Faculty Academic Profile & Dossier</h2>
-                            <p class="text-xs text-gray-500">Maintain your teaching records, research papers, and event organizing portfolios.</p>
+                            <p class="text-xs text-gray-500">Maintain teaching portfolios, research publications, administrative roles, and event organizing records.</p>
                         </div>
                         <div class="flex flex-wrap items-center gap-2">
                             <button onclick="exportConsolidatedCV('doc')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-3.5 py-2 rounded-lg shadow-sm flex items-center gap-1.5 transition">
@@ -178,43 +177,53 @@
                         </div>
                     </div>
 
-                    <!-- SUB-SECTION 1: PUBLICATIONS REGISTRY -->
+                    <!-- SUB-SECTION 1: RESEARCH PUBLICATIONS (UPDATED FORMAT) -->
                     <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4 text-xs">
                         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-2 gap-2">
-                            <h3 class="font-bold text-sm text-gray-900 flex items-center gap-2">
-                                <i class="fa-solid fa-book-bookmark text-emerald-600"></i> Research Publications (<span id="prof-pub-count">0</span>)
-                            </h3>
+                            <div>
+                                <h3 class="font-bold text-sm text-gray-900 flex items-center gap-2">
+                                    <i class="fa-solid fa-book-bookmark text-emerald-600"></i> Research Publications (<span id="prof-pub-count">0</span>)
+                                </h3>
+                                <p class="text-[11px] text-gray-500 font-mono">Format: Authors, Title, Journal, Volume, Page number, Year of publication</p>
+                            </div>
                             <button onclick="downloadSectionCSV('publications')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold px-3 py-1 rounded-md transition flex items-center gap-1">
                                 <i class="fa-solid fa-file-csv"></i> Download Publications CSV
                             </button>
                         </div>
 
                         <!-- ADD PUBLICATION FORM -->
-                        <div class="bg-slate-50 p-3 rounded-lg border border-gray-200 grid grid-cols-1 md:grid-cols-6 gap-2">
-                            <input type="text" id="pub-title-in" placeholder="Paper Title" class="md:col-span-2 border border-gray-300 rounded p-1.5 bg-white">
-                            <input type="text" id="pub-venue-in" placeholder="Journal / Conference Name" class="md:col-span-2 border border-gray-300 rounded p-1.5 bg-white">
-                            <select id="pub-index-in" class="border border-gray-300 rounded p-1.5 bg-white font-bold">
-                                <option>SCI / SCIE</option>
-                                <option>Scopus Indexed</option>
-                                <option>Peer Reviewed</option>
-                                <option>Conference Proceeding</option>
-                                <option>Book Chapter</option>
-                            </select>
-                            <input type="number" id="pub-year-in" placeholder="Year" value="2026" class="border border-gray-300 rounded p-1.5 bg-white font-mono">
-                            <input type="text" id="pub-doi-in" placeholder="DOI / Link (Optional)" class="md:col-span-5 border border-gray-300 rounded p-1.5 bg-white font-mono">
-                            <button onclick="addPublicationRecord()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded transition">
-                                + Add Paper
-                            </button>
+                        <div class="bg-slate-50 p-3 rounded-lg border border-gray-200 space-y-2">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                <input type="text" id="pub-authors-in" placeholder="Authors (e.g., A. Sharma, R. Patil, S. Deshmukh)" class="border border-gray-300 rounded p-1.5 bg-white font-medium">
+                                <input type="text" id="pub-title-in" placeholder="Paper Title" class="border border-gray-300 rounded p-1.5 bg-white font-medium">
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-6 gap-2">
+                                <input type="text" id="pub-journal-in" placeholder="Journal Name" class="md:col-span-2 border border-gray-300 rounded p-1.5 bg-white">
+                                <input type="text" id="pub-volume-in" placeholder="Vol / Issue (e.g., Vol. 45, No. 2)" class="border border-gray-300 rounded p-1.5 bg-white">
+                                <input type="text" id="pub-pages-in" placeholder="Page Nos (e.g., 102-115)" class="border border-gray-300 rounded p-1.5 bg-white">
+                                <input type="number" id="pub-year-in" placeholder="Year" value="2026" class="border border-gray-300 rounded p-1.5 bg-white font-mono">
+                                <select id="pub-index-in" class="border border-gray-300 rounded p-1.5 bg-white font-bold">
+                                    <option>SCI / SCIE</option>
+                                    <option>Scopus Indexed</option>
+                                    <option>Peer Reviewed</option>
+                                    <option>Conference Proceeding</option>
+                                    <option>Book Chapter</option>
+                                </select>
+                            </div>
+                            <div class="flex gap-2">
+                                <input type="text" id="pub-doi-in" placeholder="DOI Link / Citation Link (Optional)" class="flex-1 border border-gray-300 rounded p-1.5 bg-white font-mono">
+                                <button onclick="addPublicationRecord()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-1.5 rounded transition">
+                                    + Add Publication
+                                </button>
+                            </div>
                         </div>
 
-                        <div class="overflow-x-auto rounded-lg border border-gray-200 max-h-56">
+                        <div class="overflow-x-auto rounded-lg border border-gray-200 max-h-60">
                             <table class="w-full text-left">
                                 <thead class="bg-gray-50 border-b font-semibold text-gray-600">
                                     <tr>
-                                        <th class="p-2.5">Paper Title</th>
-                                        <th class="p-2.5">Journal / Venue</th>
+                                        <th class="p-2.5">Bibliographic Citation (Authors, Title, Journal, Vol, Pages, Year)</th>
                                         <th class="p-2.5 text-center">Indexing</th>
-                                        <th class="p-2.5 text-center">Year</th>
                                         <th class="p-2.5 text-right">Action</th>
                                     </tr>
                                 </thead>
@@ -223,7 +232,53 @@
                         </div>
                     </div>
 
-                    <!-- SUB-SECTION 2: EVENTS ORGANIZED -->
+                    <!-- SUB-SECTION 2: ADMINISTRATIVE RESPONSIBILITIES (DEPARTMENT & INSTITUTE LEVEL) -->
+                    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4 text-xs">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-2 gap-2">
+                            <div>
+                                <h3 class="font-bold text-sm text-gray-900 flex items-center gap-2">
+                                    <i class="fa-solid fa-sitemap text-indigo-600"></i> Administrative Activities (<span id="prof-admin-count">0</span>)
+                                </h3>
+                                <p class="text-[11px] text-gray-500">Track portfolio roles, coordinatorships, and committee duties at Department and Institute level.</p>
+                            </div>
+                            <button onclick="downloadSectionCSV('admin')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-bold px-3 py-1 rounded-md transition flex items-center gap-1">
+                                <i class="fa-solid fa-file-csv"></i> Download Administrative CSV
+                            </button>
+                        </div>
+
+                        <!-- ADD ADMINISTRATIVE RESPONSIBILITY FORM -->
+                        <div class="bg-slate-50 p-3 rounded-lg border border-gray-200 grid grid-cols-1 md:grid-cols-5 gap-2">
+                            <select id="admin-level-in" class="border border-gray-300 rounded p-1.5 bg-white font-bold text-indigo-700">
+                                <option value="Department Level">Department Level</option>
+                                <option value="Institute Level">Institute Level</option>
+                            </select>
+                            <input type="text" id="admin-role-in" placeholder="Role (e.g. Faculty Advisor, Coordinator, In-charge)" class="border border-gray-300 rounded p-1.5 bg-white font-medium">
+                            <input type="text" id="admin-committee-in" placeholder="Committee / Responsibility Name" class="md:col-span-2 border border-gray-300 rounded p-1.5 bg-white">
+                            <div class="flex gap-2">
+                                <input type="text" id="admin-duration-in" placeholder="Tenure (e.g. 2024-Present)" class="w-full border border-gray-300 rounded p-1.5 bg-white font-mono">
+                                <button onclick="addAdminRecord()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded transition whitespace-nowrap">
+                                    + Add Role
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto rounded-lg border border-gray-200 max-h-56">
+                            <table class="w-full text-left">
+                                <thead class="bg-gray-50 border-b font-semibold text-gray-600">
+                                    <tr>
+                                        <th class="p-2.5">Scope / Level</th>
+                                        <th class="p-2.5">Designation / Role</th>
+                                        <th class="p-2.5">Committee / Activity Portfolio</th>
+                                        <th class="p-2.5">Duration / Academic Years</th>
+                                        <th class="p-2.5 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-table-body" class="divide-y divide-gray-100 text-gray-700"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- SUB-SECTION 3: EVENTS ORGANIZED -->
                     <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4 text-xs">
                         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-2 gap-2">
                             <h3 class="font-bold text-sm text-gray-900 flex items-center gap-2">
@@ -234,7 +289,6 @@
                             </button>
                         </div>
 
-                        <!-- ADD EVENT FORM -->
                         <div class="bg-slate-50 p-3 rounded-lg border border-gray-200 grid grid-cols-1 md:grid-cols-6 gap-2">
                             <input type="text" id="ev-title-in" placeholder="Event Name / Title" class="md:col-span-2 border border-gray-300 rounded p-1.5 bg-white">
                             <select id="ev-type-in" class="border border-gray-300 rounded p-1.5 bg-white font-bold">
@@ -268,7 +322,7 @@
                         </div>
                     </div>
 
-                    <!-- SUB-SECTION 3: TEACHING ENGAGEMENT PORTFOLIO -->
+                    <!-- SUB-SECTION 4: TEACHING ENGAGEMENT PORTFOLIO -->
                     <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4 text-xs">
                         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-2 gap-2">
                             <h3 class="font-bold text-sm text-gray-900 flex items-center gap-2">
@@ -279,7 +333,6 @@
                             </button>
                         </div>
 
-                        <!-- ADD TEACHING FORM -->
                         <div class="bg-slate-50 p-3 rounded-lg border border-gray-200 grid grid-cols-1 md:grid-cols-5 gap-2">
                             <input type="text" id="teach-subject-in" placeholder="Subject / Course Name" class="md:col-span-2 border border-gray-300 rounded p-1.5 bg-white">
                             <input type="text" id="teach-program-in" placeholder="Level / Class (e.g. MTech Thermal, SY Mech)" class="border border-gray-300 rounded p-1.5 bg-white">
@@ -389,7 +442,7 @@
                         </button>
                     </div>
 
-                    <!-- SUBTAB 1: QUIZ BUILDER -->
+                    <!-- QUIZ BUILDER -->
                     <div id="subtab-quiz-box" class="subtab-content bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-6">
                         <div class="border-b pb-3 flex justify-between items-center">
                             <div>
@@ -554,7 +607,7 @@
                         </div>
                     </div>
 
-                    <!-- SUBTAB 2: FLOAT ASSIGNMENT -->
+                    <!-- FLOAT ASSIGNMENT -->
                     <div id="subtab-assignment-box" class="subtab-content hidden bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-6">
                         <div class="border-b pb-3">
                             <h3 class="text-lg font-bold text-gray-900">Float Assignment with Cut-off Deadline</h3>
@@ -598,7 +651,7 @@
                         </div>
                     </div>
 
-                    <!-- SUBTAB 3: RESULTS & GRADING -->
+                    <!-- RESULTS & GRADING -->
                     <div id="subtab-results-box" class="subtab-content hidden bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-6">
                         <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-3 gap-4">
                             <div>
@@ -931,7 +984,7 @@
         let computedExamSchedule = JSON.parse(localStorage.getItem('portal_exams')) || [];
         let facultyRanksPool = JSON.parse(localStorage.getItem('portal_faculty_ranks')) || [];
 
-        // 🌟 Faculty Profile Master Store
+        // Master Faculty Profile Store
         let facultyProfile = JSON.parse(localStorage.getItem('portal_faculty_profile')) || {
             bio: {
                 name: "",
@@ -941,6 +994,7 @@
                 specialization: "Computational Fluid Dynamics, Heat Transfer, Microfluidics"
             },
             publications: [],
+            adminActivities: [],
             eventsOrganized: [],
             teachingHistory: []
         };
@@ -1066,7 +1120,7 @@
 
         /* --- 🌟 FACULTY DOSSIER ENGINE --- */
         function loadProfileData() {
-            // 1. Populate Bio
+            // 1. Bio
             if (facultyProfile.bio) {
                 document.getElementById('bio-faculty-name').value = facultyProfile.bio.name || '';
                 document.getElementById('bio-faculty-designation').value = facultyProfile.bio.designation || '';
@@ -1075,24 +1129,44 @@
                 document.getElementById('bio-faculty-specialization').value = facultyProfile.bio.specialization || '';
             }
 
-            // 2. Populate Publications
+            // 2. Publications (Authors, Title, Journal, Volume, Page number, Year)
             const pubList = facultyProfile.publications || [];
             document.getElementById('prof-pub-count').innerText = pubList.length;
             const pubBody = document.getElementById('publications-table-body');
-            pubBody.innerHTML = pubList.length ? pubList.map((p, idx) => `
-                <tr>
-                    <td class="p-2.5 font-bold text-slate-900">
-                        ${p.title}
-                        ${p.doi ? `<br><a href="${p.doi.startsWith('http') ? p.doi : 'https://doi.org/' + p.doi}" target="_blank" class="text-indigo-600 font-mono text-[10px] underline">${p.doi}</a>` : ''}
-                    </td>
-                    <td class="p-2.5 text-slate-600">${p.venue}</td>
-                    <td class="p-2.5 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">${p.indexing}</span></td>
-                    <td class="p-2.5 text-center font-mono font-bold">${p.year}</td>
-                    <td class="p-2.5 text-right"><button onclick="deletePublicationRecord(${idx})" class="text-rose-600 font-bold hover:underline">Remove</button></td>
-                </tr>
-            `).join('') : '<tr><td colspan="5" class="p-4 text-center text-slate-400 italic">No publications recorded yet.</td></tr>';
+            pubBody.innerHTML = pubList.length ? pubList.map((p, idx) => {
+                const volStr = p.volume ? `, ${p.volume}` : '';
+                const pagesStr = p.pages ? `, pp. ${p.pages}` : '';
+                const citationText = `${p.authors || 'Authors'}, "${p.title}", <em>${p.journal}</em>${volStr}${pagesStr}, (${p.year}).`;
 
-            // 3. Populate Events
+                return `
+                    <tr>
+                        <td class="p-2.5 text-slate-800">
+                            ${citationText}
+                            ${p.doi ? `<br><a href="${p.doi.startsWith('http') ? p.doi : 'https://doi.org/' + p.doi}" target="_blank" class="text-indigo-600 font-mono text-[10px] underline">DOI: ${p.doi}</a>` : ''}
+                        </td>
+                        <td class="p-2.5 text-center whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">${p.indexing || 'Peer-Reviewed'}</span></td>
+                        <td class="p-2.5 text-right whitespace-nowrap"><button onclick="deletePublicationRecord(${idx})" class="text-rose-600 font-bold hover:underline">Remove</button></td>
+                    </tr>
+                `;
+            }).join('') : '<tr><td colspan="3" class="p-4 text-center text-slate-400 italic">No publications recorded yet.</td></tr>';
+
+            // 3. Administrative Activities (Department & Institute Level)
+            const adminList = facultyProfile.adminActivities || [];
+            document.getElementById('prof-admin-count').innerText = adminList.length;
+            const adminBody = document.getElementById('admin-table-body');
+            adminBody.innerHTML = adminList.length ? adminList.map((a, idx) => `
+                <tr>
+                    <td class="p-2.5 font-bold ${a.level === 'Institute Level' ? 'text-indigo-700' : 'text-slate-800'} whitespace-nowrap">
+                        <span class="px-2 py-0.5 rounded text-[10px] ${a.level === 'Institute Level' ? 'bg-indigo-100 text-indigo-800 font-bold' : 'bg-slate-200 text-slate-700 font-semibold'}">${a.level}</span>
+                    </td>
+                    <td class="p-2.5 font-bold text-slate-900">${a.role}</td>
+                    <td class="p-2.5 text-slate-700">${a.committee}</td>
+                    <td class="p-2.5 font-mono text-slate-600 whitespace-nowrap">${a.duration}</td>
+                    <td class="p-2.5 text-right whitespace-nowrap"><button onclick="deleteAdminRecord(${idx})" class="text-rose-600 font-bold hover:underline">Remove</button></td>
+                </tr>
+            `).join('') : '<tr><td colspan="5" class="p-4 text-center text-slate-400 italic">No administrative responsibilities cataloged yet.</td></tr>';
+
+            // 4. Events Organized
             const evList = facultyProfile.eventsOrganized || [];
             document.getElementById('prof-event-count').innerText = evList.length;
             const evBody = document.getElementById('events-table-body');
@@ -1106,7 +1180,7 @@
                 </tr>
             `).join('') : '<tr><td colspan="5" class="p-4 text-center text-slate-400 italic">No events recorded yet.</td></tr>';
 
-            // 4. Populate Teaching History
+            // 5. Teaching History
             const teachList = facultyProfile.teachingHistory || [];
             document.getElementById('prof-teaching-count').innerText = teachList.length;
             const teachBody = document.getElementById('teaching-table-body');
@@ -1136,22 +1210,30 @@
         }
 
         function addPublicationRecord() {
+            const authors = document.getElementById('pub-authors-in').value.trim();
             const title = document.getElementById('pub-title-in').value.trim();
-            const venue = document.getElementById('pub-venue-in').value.trim();
-            const indexing = document.getElementById('pub-index-in').value;
+            const journal = document.getElementById('pub-journal-in').value.trim();
+            const volume = document.getElementById('pub-volume-in').value.trim();
+            const pages = document.getElementById('pub-pages-in').value.trim();
             const year = document.getElementById('pub-year-in').value.trim();
+            const indexing = document.getElementById('pub-index-in').value;
             const doi = document.getElementById('pub-doi-in').value.trim();
 
-            if (!title || !venue || !year) return alert("Fill in paper title, journal/venue, and year.");
+            if (!authors || !title || !journal || !year) {
+                return alert("Fill in Authors, Title, Journal Name, and Year.");
+            }
 
             facultyProfile.publications = facultyProfile.publications || [];
-            facultyProfile.publications.unshift({ title, venue, indexing, year, doi });
+            facultyProfile.publications.unshift({ authors, title, journal, volume, pages, year, indexing, doi });
 
             localStorage.setItem('portal_faculty_profile', JSON.stringify(facultyProfile));
             pushDataToCloud();
 
+            document.getElementById('pub-authors-in').value = '';
             document.getElementById('pub-title-in').value = '';
-            document.getElementById('pub-venue-in').value = '';
+            document.getElementById('pub-journal-in').value = '';
+            document.getElementById('pub-volume-in').value = '';
+            document.getElementById('pub-pages-in').value = '';
             document.getElementById('pub-doi-in').value = '';
             loadProfileData();
         }
@@ -1159,6 +1241,34 @@
         function deletePublicationRecord(idx) {
             if (!confirm("Delete this publication record?")) return;
             facultyProfile.publications.splice(idx, 1);
+            localStorage.setItem('portal_faculty_profile', JSON.stringify(facultyProfile));
+            pushDataToCloud();
+            loadProfileData();
+        }
+
+        function addAdminRecord() {
+            const level = document.getElementById('admin-level-in').value;
+            const role = document.getElementById('admin-role-in').value.trim();
+            const committee = document.getElementById('admin-committee-in').value.trim();
+            const duration = document.getElementById('admin-duration-in').value.trim();
+
+            if (!role || !committee || !duration) return alert("Fill in Role, Committee/Activity Name, and Tenure duration.");
+
+            facultyProfile.adminActivities = facultyProfile.adminActivities || [];
+            facultyProfile.adminActivities.unshift({ level, role, committee, duration });
+
+            localStorage.setItem('portal_faculty_profile', JSON.stringify(facultyProfile));
+            pushDataToCloud();
+
+            document.getElementById('admin-role-in').value = '';
+            document.getElementById('admin-committee-in').value = '';
+            document.getElementById('admin-duration-in').value = '';
+            loadProfileData();
+        }
+
+        function deleteAdminRecord(idx) {
+            if (!confirm("Delete this administrative responsibility entry?")) return;
+            facultyProfile.adminActivities.splice(idx, 1);
             localStorage.setItem('portal_faculty_profile', JSON.stringify(facultyProfile));
             pushDataToCloud();
             loadProfileData();
@@ -1221,15 +1331,20 @@
             loadProfileData();
         }
 
-        /* --- 📥 EXPORT SECTIONS TO CSV --- */
+        /* --- 📥 SEPARATE CSV EXPORTS --- */
         function downloadSectionCSV(section) {
             let csv = "";
             let filename = `Faculty_${section}_${Date.now()}.csv`;
 
             if (section === 'publications') {
-                csv = "Title,Venue/Journal,Indexing,Year,DOI\n";
+                csv = "Authors,Title,Journal,Volume,Page Number,Year of Publication,Indexing,DOI\n";
                 (facultyProfile.publications || []).forEach(p => {
-                    csv += `"${p.title}","${p.venue}","${p.indexing}",${p.year},"${p.doi || ''}"\n`;
+                    csv += `"${p.authors || ''}","${p.title}","${p.journal || ''}","${p.volume || ''}","${p.pages || ''}",${p.year},"${p.indexing || ''}","${p.doi || ''}"\n`;
+                });
+            } else if (section === 'admin') {
+                csv = "Scope/Level,Designation/Role,Committee/Portfolio,Duration/Tenure\n";
+                (facultyProfile.adminActivities || []).forEach(a => {
+                    csv += `"${a.level}","${a.role}","${a.committee}","${a.duration}"\n`;
                 });
             } else if (section === 'events') {
                 csv = "Event Title,Type,Role,Duration/Dates,Sponsoring Agency\n";
@@ -1249,12 +1364,16 @@
             document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
 
-        /* --- 📄 CONSOLIDATED ACADEMIC CV GENERATOR --- */
+        /* --- 📄 MASTER CONSOLIDATED ACADEMIC CV GENERATOR --- */
         function exportConsolidatedCV(format) {
             const bio = facultyProfile.bio || {};
             const pubs = facultyProfile.publications || [];
+            const admins = facultyProfile.adminActivities || [];
             const events = facultyProfile.eventsOrganized || [];
             const teaching = facultyProfile.teachingHistory || [];
+
+            const deptAdmins = admins.filter(a => a.level === 'Department Level');
+            const instAdmins = admins.filter(a => a.level === 'Institute Level');
 
             let content = `
                 <div style="font-family: Arial, 'Helvetica Neue', sans-serif; line-height: 1.6; color: #111827; padding: 25px; max-width: 800px; margin: auto;">
@@ -1265,30 +1384,51 @@
                         <p style="margin: 2px 0 0 0; font-size: 13px; color: #4b5563;"><strong>Email:</strong> ${bio.email || 'N/A'} | <strong>Specialization:</strong> ${bio.specialization || 'N/A'}</p>
                     </div>
 
+                    <!-- 1. PUBLICATIONS -->
                     <div style="margin-bottom: 24px;">
-                        <h3 style="font-size: 16px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; color: #0f172a; text-transform: uppercase;">1. Research Publications</h3>
-                        ${pubs.length ? `<ol style="font-size: 13px; padding-left: 20px; margin-top: 8px;">` + pubs.map(p => `
-                            <li style="margin-bottom: 8px;">
-                                <strong>${p.title}</strong><br>
-                                <em>${p.venue}</em> (${p.year}) &mdash; <span style="color: #047857; font-weight: bold;">[${p.indexing}]</span>
-                                ${p.doi ? `<br><span style="font-family: monospace; font-size: 11px; color: #2563eb;">DOI: ${p.doi}</span>` : ''}
-                            </li>
-                        `).join('') + `</ol>` : `<p style="font-size: 13px; font-style: italic; color: #64748b;">No publications cataloged.</p>`}
+                        <h3 style="font-size: 15px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; color: #0f172a; text-transform: uppercase;">1. Research Publications (Journals & Conferences)</h3>
+                        ${pubs.length ? `<ol style="font-size: 13px; padding-left: 20px; margin-top: 8px;">` + pubs.map(p => {
+                            const vol = p.volume ? `, ${p.volume}` : '';
+                            const pg = p.pages ? `, pp. ${p.pages}` : '';
+                            return `
+                                <li style="margin-bottom: 8px;">
+                                    ${p.authors || 'Authors'}, "${p.title}", <em>${p.journal}</em>${vol}${pg}, (${p.year}). 
+                                    <span style="color: #047857; font-weight: bold;">[${p.indexing || 'Indexed'}]</span>
+                                    ${p.doi ? `<br><span style="font-family: monospace; font-size: 11px; color: #2563eb;">DOI: ${p.doi}</span>` : ''}
+                                </li>
+                            `;
+                        }).join('') + `</ol>` : `<p style="font-size: 13px; font-style: italic; color: #64748b;">No publications cataloged.</p>`}
                     </div>
 
+                    <!-- 2. ADMINISTRATIVE RESPONSIBILITIES -->
                     <div style="margin-bottom: 24px;">
-                        <h3 style="font-size: 16px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; color: #0f172a; text-transform: uppercase;">2. Workshops, FDPs & Conferences Organized</h3>
+                        <h3 style="font-size: 15px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; color: #0f172a; text-transform: uppercase;">2. Administrative & Institutional Governance</h3>
+                        
+                        <h4 style="font-size: 13px; margin: 10px 0 4px 0; color: #1e3a8a;">A. Department Level Responsibilities</h4>
+                        ${deptAdmins.length ? `<ul style="font-size: 13px; padding-left: 20px; margin-top: 4px;">` + deptAdmins.map(a => `
+                            <li style="margin-bottom: 6px;"><strong>${a.role}</strong> &mdash; ${a.committee} (${a.duration})</li>
+                        `).join('') + `</ul>` : `<p style="font-size: 12px; font-style: italic; color: #64748b;">None recorded.</p>`}
+
+                        <h4 style="font-size: 13px; margin: 12px 0 4px 0; color: #1e3a8a;">B. Institute / University Level Responsibilities</h4>
+                        ${instAdmins.length ? `<ul style="font-size: 13px; padding-left: 20px; margin-top: 4px;">` + instAdmins.map(a => `
+                            <li style="margin-bottom: 6px;"><strong>${a.role}</strong> &mdash; ${a.committee} (${a.duration})</li>
+                        `).join('') + `</ul>` : `<p style="font-size: 12px; font-style: italic; color: #64748b;">None recorded.</p>`}
+                    </div>
+
+                    <!-- 3. WORKSHOPS & CONFERENCES ORGANIZED -->
+                    <div style="margin-bottom: 24px;">
+                        <h3 style="font-size: 15px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; color: #0f172a; text-transform: uppercase;">3. Workshops, FDPs & Symposia Organized</h3>
                         ${events.length ? `<ul style="font-size: 13px; padding-left: 20px; margin-top: 8px;">` + events.map(e => `
                             <li style="margin-bottom: 8px;">
                                 <strong>${e.title}</strong> (${e.type})<br>
-                                Role: <strong>${e.role}</strong> | Duration: ${e.dates}<br>
-                                ${e.sponsor ? `Sponsoring Body: <em>${e.sponsor}</em>` : ''}
+                                Role: <strong>${e.role}</strong> | Duration: ${e.dates} ${e.sponsor ? `| Sponsoring Body: <em>${e.sponsor}</em>` : ''}
                             </li>
                         `).join('') + `</ul>` : `<p style="font-size: 13px; font-style: italic; color: #64748b;">No organized events cataloged.</p>`}
                     </div>
 
+                    <!-- 4. TEACHING HISTORY -->
                     <div style="margin-bottom: 24px;">
-                        <h3 style="font-size: 16px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; color: #0f172a; text-transform: uppercase;">3. Teaching Portfolio & Courses Engaged</h3>
+                        <h3 style="font-size: 15px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; color: #0f172a; text-transform: uppercase;">4. Courses & Teaching Engagement Portfolio</h3>
                         ${teaching.length ? `<table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px;">
                             <thead>
                                 <tr style="background-color: #f1f5f9; text-align: left;">
@@ -1341,7 +1481,7 @@
             }
         }
 
-        /* --- COURSES, ATTENDANCE, EXAM, LAB & RESEARCH SCRIPTS --- */
+        /* --- CORE HELPERS FOR COURSES, ASSESSMENTS, EXAMS & LABS --- */
         function switchEnrollmentMode(mode) {
             activeEnrollmentMode = mode;
             document.getElementById('mode-excel-btn').className = mode === 'excel' ? "py-1.5 text-xs font-bold rounded bg-white text-indigo-600 shadow-xs" : "py-1.5 text-xs font-bold rounded text-gray-600";
@@ -2161,6 +2301,7 @@
         function updateDashboardMetrics() {
             document.getElementById('dash-course-count').innerText = Object.keys(academicCourses).length;
             document.getElementById('dash-pub-count').innerText = (facultyProfile.publications || []).length;
+            document.getElementById('dash-admin-count').innerText = (facultyProfile.adminActivities || []).length;
             document.getElementById('dash-event-count').innerText = (facultyProfile.eventsOrganized || []).length;
             document.getElementById('dash-research-count').innerText = researchProjects.length;
         }
