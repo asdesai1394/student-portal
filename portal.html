@@ -2299,12 +2299,22 @@
         }
 
         function updateDashboardMetrics() {
-            document.getElementById('dash-course-count').innerText = Object.keys(academicCourses).length;
-            document.getElementById('dash-pub-count').innerText = (facultyProfile.publications || []).length;
-            document.getElementById('dash-admin-count').innerText = (facultyProfile.adminActivities || []).length;
-            document.getElementById('dash-event-count').innerText = (facultyProfile.eventsOrganized || []).length;
-            document.getElementById('dash-research-count').innerText = researchProjects.length;
-        }
+    const elCourse = document.getElementById('dash-course-count');
+    const elPub = document.getElementById('dash-pub-count');
+    const elAdmin = document.getElementById('dash-admin-count');
+    const elEvent = document.getElementById('dash-event-count');
+    const elResearch = document.getElementById('dash-research-count');
+    const elTest = document.getElementById('dash-test-count');
+    const elAssign = document.getElementById('dash-assign-count');
+
+    if (elCourse) elCourse.innerText = Object.keys(academicCourses || {}).length;
+    if (elPub) elPub.innerText = (facultyProfile && facultyProfile.publications ? facultyProfile.publications.length : 0);
+    if (elAdmin) elAdmin.innerText = (facultyProfile && facultyProfile.adminActivities ? facultyProfile.adminActivities.length : 0);
+    if (elEvent) elEvent.innerText = (facultyProfile && facultyProfile.eventsOrganized ? facultyProfile.eventsOrganized.length : 0);
+    if (elResearch) elResearch.innerText = (researchProjects || []).length;
+    if (elTest) elTest.innerText = (publishedTests || []).length;
+    if (elAssign) elAssign.innerText = (floatedAssignments || []).length;
+}
 
         document.getElementById('current-date').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         
