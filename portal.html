@@ -1043,82 +1043,81 @@
 
         /* --- 🛡️ CLEAN FETCH & SYNC --- */
         function fetchLatestDataFromCloud() {
-            document.getElementById('cloud-sync-badge').innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Loading Cloud Data...`;
+    const badge = document.getElementById('cloud-sync-badge');
+    if (badge) badge.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Loading Cloud Data...`;
 
-            fetch(SCRIPT_URL)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.courses !== undefined) academicCourses = data.courses;
-                    if (data.tests !== undefined) publishedTests = data.tests;
-                    if (data.assignments !== undefined) floatedAssignments = data.assignments;
-                    if (data.profile && Object.keys(data.profile).length > 0) {
-                        facultyProfile = Object.assign({}, facultyProfile, data.profile);
-                        localStorage.setItem('portal_faculty_profile', JSON.stringify(facultyProfile));
+    fetch(SCRIPT_URL)
+        .then(res => res.json())
+        .then(data => {
+            if (data.courses) academicCourses = data.courses;
+            if (data.tests) publishedTests = data.tests;
+            if (data.assignments) floatedAssignments = data.assignments;
+            if (data.profile) facultyProfile = Object.assign({}, facultyProfile, data.profile);
+
+            localStorage.setItem('portal_courses', JSON.stringify(academicCourses));
+            localStorage.setItem('portal_published_tests', JSON.stringify(publishedTests));
+            localStorage.setItem('portal_floated_assignments', JSON.stringify(floatedAssignments));
+            localStorage.setItem('portal_faculty_profile', JSON.stringify(facultyProfile));
+
+            // Process Drive Submissions directly from cloud
+            if (data.driveSubmissions && Array.isArray(data.driveSubmissions)) {
+                let localDriveSubmissions = JSON.parse(localStorage.getItem('portal_assignments')) || [];
+                let uniqueMap = new Map();
+
+                // Merge cloud submissions first
+                data.driveSubmissions.forEach(sub => {
+                    if (sub && sub.mis) {
+                        let key = `${sub.mis}_${(sub.title || '').trim()}`.toLowerCase();
+                        uniqueMap.set(key, sub);
                     }
-
-                    localStorage.setItem('portal_courses', JSON.stringify(academicCourses));
-                    localStorage.setItem('portal_published_tests', JSON.stringify(publishedTests));
-                    localStorage.setItem('portal_floated_assignments', JSON.stringify(floatedAssignments));
-
-                    let localDriveSubmissions = JSON.parse(localStorage.getItem('portal_assignments')) || [];
-                    let cloudDriveSubmissions = data.driveSubmissions || [];
-                    let combinedDrive = [...localDriveSubmissions, ...cloudDriveSubmissions];
-                    let uniqueDriveMap = new Map();
-                    
-                    combinedDrive.forEach(sub => {
-                        if (sub && sub.mis && sub.title) {
-                            let key = `${sub.mis}_${sub.title}`.toLowerCase().trim();
-                            if (uniqueDriveMap.has(key)) {
-                                let existing = uniqueDriveMap.get(key);
-                                sub.grade = sub.grade || existing.grade;
-                                sub.remarks = sub.remarks || existing.remarks;
-                            }
-                            uniqueDriveMap.set(key, sub);
-                        }
-                    });
-
-                    localStorage.setItem('portal_assignments', JSON.stringify(Array.from(uniqueDriveMap.values())));
-
-                    if (data.testSubmissions && data.testSubmissions.length > 0) {
-                        let localQuizSubs = JSON.parse(localStorage.getItem('portal_test_submissions')) || [];
-                        let combinedQuiz = [...localQuizSubs, ...data.testSubmissions];
-                        let uniqueQuizMap = new Map();
-                        
-                        combinedQuiz.forEach(qSub => {
-                            if (qSub && qSub.mis && (qSub.testId || qSub.testTitle || qSub.title)) {
-                                let key = `${qSub.mis}_${qSub.testId || qSub.testTitle || qSub.title}_${qSub.timestamp}`.toLowerCase().trim();
-                                uniqueQuizMap.set(key, qSub);
-                            }
-                        });
-                        localStorage.setItem('portal_test_submissions', JSON.stringify(Array.from(uniqueQuizMap.values())));
-                    }
-
-                    document.getElementById('cloud-sync-badge').innerHTML = `<i class="fa-solid fa-cloud"></i> Synced to Cloud`;
-
-                    initializeDropdowns();
-                    renderRosterView();
-                    renderPublishedQuizzesList();
-                    renderFloatedAssignments();
-                    populateCourseFilterDropdown();
-                    renderEvaluatedTables();
-                    loadProfileData();
-                    updateDashboardMetrics();
-                })
-                .catch(err => {
-                    console.error("Cloud fetch error:", err);
-                    document.getElementById('cloud-sync-badge').innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-400"></i> Local Cached`;
-                    initializeDropdowns();
-                    renderRosterView();
-                    renderPublishedQuizzesList();
-                    renderFloatedAssignments();
-                    populateCourseFilterDropdown();
-                    renderEvaluatedTables();
-                    loadProfileData();
-                    updateDashboardMetrics();
                 });
-        }
 
-        /* --- 🌟 FACULTY DOSSIER ENGINE --- */
+                // Preserve any local manual grades/remarks
+                localDriveSubmissions.forEach(localSub => {
+                    if (localSub && localSub.mis) {
+                        let key = `${localSub.mis}_${(localSub.title || '').trim()}`.toLowerCase();
+                        if (uniqueMap.has(key)) {
+                            let cloudSub = uniqueMap.get(key);
+                            if (localSub.grade && !cloudSub.grade) cloudSub.grade = localSub.grade;
+                            if (localSub.remarks && !cloudSub.remarks) cloudSub.remarks = localSub.remarks;
+                        } else {
+                            uniqueMap.set(key, localSub);
+                        }
+                    }
+                });
+
+                localStorage.setItem('portal_assignments', JSON.stringify(Array.from(uniqueMap.values())));
+            }
+
+            if (data.testSubmissions && Array.isArray(data.testSubmissions)) {
+                localStorage.setItem('portal_test_submissions', JSON.stringify(data.testSubmissions));
+            }
+
+            if (badge) badge.innerHTML = `<i class="fa-solid fa-cloud"></i> Synced to Cloud`;
+
+            // Refresh UI components
+            initializeDropdowns();
+            renderRosterView();
+            renderPublishedQuizzesList();
+            renderFloatedAssignments();
+            populateCourseFilterDropdown();
+            renderEvaluatedTables();
+            loadProfileData();
+            updateDashboardMetrics();
+        })
+        .catch(err => {
+            console.error("Cloud fetch error:", err);
+            if (badge) badge.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-400"></i> Local Cached`;
+            initializeDropdowns();
+            renderRosterView();
+            renderPublishedQuizzesList();
+            renderFloatedAssignments();
+            populateCourseFilterDropdown();
+            renderEvaluatedTables();
+            loadProfileData();
+            updateDashboardMetrics();
+        });
+}        /* --- 🌟 FACULTY DOSSIER ENGINE --- */
         function loadProfileData() {
             // 1. Bio
             if (facultyProfile.bio) {
